@@ -13,12 +13,16 @@ you gained the most time on — "Caught Smith by 0.8 seconds."
 
 Windows only (iRacing telemetry is Windows shared memory). Python 3.14.
 
+Needs [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`).
+
 ```bat
-python3.14 -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m piper.download_voices --download-dir voices en_GB-southern_english_female-low
-.venv\Scripts\ruff check .
+uv sync
+uv run python -m piper.download_voices --download-dir voices en_GB-southern_english_female-low
+uv run main.py
+uv run ruff check .
 ```
+
+Add a dependency with `uv add <pkg>` (or `uv add --dev <pkg>` for tooling).
 
 ## What I learned
 
