@@ -11,3 +11,6 @@ voices/
 
 # Telemetry dumps (irsdk.exe --dump)
 *.bin
+
+# Benchmark run logs
+bench/runs/
