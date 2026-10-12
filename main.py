@@ -11,7 +11,7 @@ from soma.irsdk_vars import PLAYER_CAR_IDX
 
 def main(args: list[str]) -> None:
     ir = iRacing()
-    ir.ir.startup()
+    ir.check_iracing()
 
     cur_dir = Path(__file__).resolve().parent
     voices_dir = cur_dir / "voices"
