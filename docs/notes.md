@@ -55,6 +55,3 @@ Claude's notes for this repo. Cross-project context lives in the hub:
 3. His: numbers/facts check; decide digits-from-LLM + code spells numbers for Piper.
 4. Eval harness over the example pool, 3B vs 8B, temperature sweep. (Tooling, fair for me.)
 5. Telemetry recorder + replay for desk testing.
-
-Pending from him: case-only rename `git mv src/soma/iRacing.py src/soma/iracing.py`;
-`bench/prompt_play.py` + `ollama` dep (pyproject/uv.lock) uncommitted.
