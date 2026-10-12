@@ -1,6 +1,9 @@
+import logging
 from dataclasses import dataclass
 
 import irsdk
+
+logger = logging.getLogger(__file__)
 
 
 @dataclass
@@ -32,3 +35,5 @@ class iRacing:  # noqa: N801  (brand name capitalization)
         ):
             self.state.ir_connected = True
             print("irsdk connected")
+
+        logger.error("iRacing:IRSDK failed to connect")
