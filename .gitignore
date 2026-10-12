@@ -3,7 +3,6 @@ __pycache__/
 *.py[codz]
 
 # Virtual environments
-env/
 .venv/
 
 # Piper voice models (download with: python -m piper.download_voices --download-dir voices <voice>)
