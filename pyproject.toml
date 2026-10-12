@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Spoken race engineer for iRacing"
 requires-python = ">=3.14"
 dependencies = [
+    "ollama>=0.6.3",
     "piper-tts>=1.8.0",
     "pyirsdk>=1.3.7",
     "sounddevice>=0.5.6",
