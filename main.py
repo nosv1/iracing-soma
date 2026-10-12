@@ -3,9 +3,9 @@ import sys
 from piper import AudioChunk
 import sounddevice
 
-from src.iRacing import iRacing
-from src.irsdk_vars import *
-from src.car import Car
+from soma.iRacing import iRacing
+from soma.irsdk_vars import *
+from soma.car import Car
 from piper import PiperVoice
 from pathlib import Path
 

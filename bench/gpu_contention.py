@@ -3,10 +3,11 @@
 Start at the desk, get in the rig. Waits until you're on track, then steps through
 phases on its own and announces each one through Piper so the headset stays on.
 
-    env/Scripts/python bench/gpu_contention.py            # real run (~15 min of laps)
-    env/Scripts/python bench/gpu_contention.py --quick    # desk dry run, 10 s phases, no on-track wait
+    .venv/Scripts/python bench/gpu_contention.py          # real run (~15 min of laps)
+    .venv/Scripts/python bench/gpu_contention.py --quick  # desk dry run, 10 s phases
 
-Writes bench/runs/<timestamp>/{phases,telemetry,gpu,llm}.csv, all keyed on t (s since start).
+Writes bench/runs/<timestamp>/{phases,telemetry,gpu,llm}.csv,
+all keyed on t (s since start).
 """
 
 import argparse
@@ -14,7 +15,6 @@ import csv
 import json
 import random
 import subprocess
-import sys
 import threading
 import time
 import urllib.request
@@ -25,11 +25,18 @@ import irsdk
 import sounddevice as sd
 from piper import PiperVoice
 
-sys.path.insert(0, str(Path(__file__).parent.parent))  # repo root, for src/
-from src.irsdk_vars import CPU_USAGE_FG, FRAME_RATE, GPU_USAGE, IS_ON_TRACK, SESSION_TIME
+from soma.irsdk_vars import (
+    CPU_USAGE_FG,
+    FRAME_RATE,
+    GPU_USAGE,
+    IS_ON_TRACK,
+    SESSION_TIME,
+)
 
 OLLAMA = "http://127.0.0.1:11434"
-VOICE = Path(__file__).parent.parent / "voices" / "en_GB-southern_english_female-low.onnx"
+VOICE = (
+    Path(__file__).parent.parent / "voices" / "en_GB-southern_english_female-low.onnx"
+)
 SMALL, BIG = "llama3.2:3b", "llama3.1:8b"
 
 # (name, minutes, model, mode); mode: none | idle | periodic | continuous
@@ -44,7 +51,10 @@ PHASES = [
 ]
 PERIODIC_INTERVAL_S = 12
 
-SYSTEM = "You are a calm race engineer on the radio. Reply with one short sentence. Use the numbers exactly as given."
+SYSTEM = (
+    "You are a calm race engineer on the radio. Reply with one short sentence. "
+    "Use the numbers exactly as given."
+)
 
 T0 = time.perf_counter()
 
@@ -80,6 +90,7 @@ def say(text: str):
 
 # ---------- ollama ----------
 
+
 def post(path: str, body: dict, stream: bool = False):
     req = urllib.request.Request(
         OLLAMA + path, json.dumps(body).encode(), {"Content-Type": "application/json"}
@@ -98,18 +109,37 @@ def unload_all():
 
 
 def fake_facts() -> dict:
-    return random.choice([
-        {"event": "gap_ahead", "position": random.randint(2, 15), "gap_s": round(random.uniform(0.3, 4), 1), "trend": random.choice(["closing", "opening"])},
-        {"event": "caught", "car_number": random.randint(1, 99), "gained_s": round(random.uniform(0.1, 1.5), 1)},
-        {"event": "fuel", "laps_left": round(random.uniform(2, 12), 1), "laps_remaining_in_race": random.randint(3, 20)},
-    ])
+    return random.choice(
+        [
+            {
+                "event": "gap_ahead",
+                "position": random.randint(2, 15),
+                "gap_s": round(random.uniform(0.3, 4), 1),
+                "trend": random.choice(["closing", "opening"]),
+            },
+            {
+                "event": "caught",
+                "car_number": random.randint(1, 99),
+                "gained_s": round(random.uniform(0.1, 1.5), 1),
+            },
+            {
+                "event": "fuel",
+                "laps_left": round(random.uniform(2, 12), 1),
+                "laps_remaining_in_race": random.randint(3, 20),
+            },
+        ]
+    )
 
 
 def generate(model: str, llm: CsvLog, phase: str, num_predict: int):
     facts = fake_facts()
     body = {
-        "model": model, "system": SYSTEM, "prompt": json.dumps(facts), "stream": True,
-        "keep_alive": "60m", "options": {"num_predict": num_predict, "temperature": 0.3},
+        "model": model,
+        "system": SYSTEM,
+        "prompt": json.dumps(facts),
+        "stream": True,
+        "keep_alive": "60m",
+        "options": {"num_predict": num_predict, "temperature": 0.3},
     }
     t_send = time.perf_counter()
     ttft, text, final = None, [], {}
@@ -123,9 +153,16 @@ def generate(model: str, llm: CsvLog, phase: str, num_predict: int):
                 final = msg
     total = time.perf_counter() - t_send
     eval_n, eval_ns = final.get("eval_count", 0), final.get("eval_duration", 1)
-    llm.row(phase=phase, model=model, ttft_s=round(ttft or -1, 3), total_s=round(total, 3),
-            tokens=eval_n, tok_per_s=round(eval_n / (eval_ns / 1e9), 1),
-            facts=json.dumps(facts), reply="".join(text).strip())
+    llm.row(
+        phase=phase,
+        model=model,
+        ttft_s=round(ttft or -1, 3),
+        total_s=round(total, 3),
+        tokens=eval_n,
+        tok_per_s=round(eval_n / (eval_ns / 1e9), 1),
+        facts=json.dumps(facts),
+        reply="".join(text).strip(),
+    )
 
 
 def llm_worker(model, mode, stop: threading.Event, llm: CsvLog, phase: str):
@@ -139,12 +176,18 @@ def llm_worker(model, mode, stop: threading.Event, llm: CsvLog, phase: str):
 
 # ---------- samplers ----------
 
+
 def telemetry_sampler(ir: irsdk.IRSDK, stop: threading.Event, tel: CsvLog, hz=10):
     while not stop.is_set():
         if ir.is_initialized and ir.is_connected:
             ir.freeze_var_buffer_latest()
-            tel.row(session_time=ir[SESSION_TIME], on_track=ir[IS_ON_TRACK],
-                    frame_rate=ir[FRAME_RATE], gpu_usage=ir[GPU_USAGE], cpu_fg=ir[CPU_USAGE_FG])
+            tel.row(
+                session_time=ir[SESSION_TIME],
+                on_track=ir[IS_ON_TRACK],
+                frame_rate=ir[FRAME_RATE],
+                gpu_usage=ir[GPU_USAGE],
+                cpu_fg=ir[CPU_USAGE_FG],
+            )
         else:
             ir.startup()
         stop.wait(1 / hz)
@@ -152,9 +195,17 @@ def telemetry_sampler(ir: irsdk.IRSDK, stop: threading.Event, tel: CsvLog, hz=10
 
 def start_gpu_sampler(gpu: CsvLog) -> subprocess.Popen:
     p = subprocess.Popen(
-        ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,clocks.gr,temperature.gpu",
-         "--format=csv,noheader,nounits", "-lms", "500"],
-        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, text=True,
+        [
+            "nvidia-smi",
+            "--query-gpu=utilization.gpu,memory.used,clocks.gr,temperature.gpu",
+            "--format=csv,noheader,nounits",
+            "-lms",
+            "500",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        text=True,
     )
 
     def read():
@@ -168,22 +219,43 @@ def start_gpu_sampler(gpu: CsvLog) -> subprocess.Popen:
 
 # ---------- main ----------
 
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--quick", action="store_true", help="10 s phases, don't wait for on-track")
+    ap.add_argument(
+        "--quick", action="store_true", help="10 s phases, don't wait for on-track"
+    )
     args = ap.parse_args()
 
     out = Path(__file__).parent / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S")
     out.mkdir(parents=True)
     phases = CsvLog(out / "phases.csv", ["t", "event", "phase", "model", "mode"])
-    tel = CsvLog(out / "telemetry.csv", ["t", "session_time", "on_track", "frame_rate", "gpu_usage", "cpu_fg"])
+    tel = CsvLog(
+        out / "telemetry.csv",
+        ["t", "session_time", "on_track", "frame_rate", "gpu_usage", "cpu_fg"],
+    )
     gpu = CsvLog(out / "gpu.csv", ["t", "util_pct", "mem_mib", "clock_mhz", "temp_c"])
-    llm = CsvLog(out / "llm.csv", ["t", "phase", "model", "ttft_s", "total_s", "tokens", "tok_per_s", "facts", "reply"])
+    llm = CsvLog(
+        out / "llm.csv",
+        [
+            "t",
+            "phase",
+            "model",
+            "ttft_s",
+            "total_s",
+            "tokens",
+            "tok_per_s",
+            "facts",
+            "reply",
+        ],
+    )
     print(f"logging to {out}")
 
     ir = irsdk.IRSDK()
     stop_all = threading.Event()
-    threading.Thread(target=telemetry_sampler, args=(ir, stop_all, tel), daemon=True).start()
+    threading.Thread(
+        target=telemetry_sampler, args=(ir, stop_all, tel), daemon=True
+    ).start()
     smi = start_gpu_sampler(gpu)
 
     unload_all()
@@ -204,11 +276,14 @@ def main():
             elif mode == "idle" or model != PHASES[i - 2][2]:
                 unload_all()
                 load(model)
-            say(f"Phase {i} of {len(PHASES)}: {name}. {minutes} minute{'s' if minutes != 1 else ''}.")
+            plural = "s" if minutes != 1 else ""
+            say(f"Phase {i} of {len(PHASES)}: {name}. {minutes} minute{plural}.")
             phases.row(event="start", phase=name, model=model, mode=mode)
 
             stop = threading.Event()
-            worker = threading.Thread(target=llm_worker, args=(model, mode, stop, llm, name), daemon=True)
+            worker = threading.Thread(
+                target=llm_worker, args=(model, mode, stop, llm, name), daemon=True
+            )
             worker.start()
             time.sleep(duration)
             stop.set()

@@ -14,3 +14,6 @@ voices/
 
 # Benchmark run logs
 bench/runs/
+
+# Editable-install metadata (pip install -e .)
+*.egg-info/
