@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 import irsdk
 
 
@@ -8,7 +9,7 @@ class State:
     last_car_setup_tick: int = -1
 
 
-class iRacing:
+class iRacing:  # noqa: N801  (brand name capitalization)
     def __init__(self):
         self.ir = irsdk.IRSDK()
         self.state = State()

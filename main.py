@@ -1,13 +1,12 @@
 import sys
-
-from piper import AudioChunk
-import sounddevice
-
-from soma.iRacing import iRacing
-from soma.irsdk_vars import *
-from soma.car import Car
-from piper import PiperVoice
 from pathlib import Path
+
+import sounddevice
+from piper import PiperVoice
+
+from soma.car import Car
+from soma.iracing import iRacing
+from soma.irsdk_vars import PLAYER_CAR_IDX
 
 
 def main(args: list[str]) -> None:
