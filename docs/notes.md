@@ -23,17 +23,38 @@ Claude's notes for this repo. Cross-project context lives in the hub:
   - TTFT ~0.03–0.05 s, 3B ~190 tok/s, 8B ~100 tok/s. One 15 s cold first request in the dry run,
     not reproduced; may need a warm-up call at session start.
   - With a one-line prompt, 3B invents facts badly; 8B mostly faithful but still embellishes.
-- Project setup: Python 3.14 `.venv`, `pyproject.toml` (pinned deps, ruff dev extra), package at
-  `src/soma/` installed editable. Ruff clean.
+- Project setup: Python 3.14 `.venv`, uv (`uv sync` / `uv add`, `uv.lock` committed), package at
+  `src/soma/` installed editable. Ruff + mypy as dev deps. Ollama context default is 4096
+  (models support 128K); ~8K fits either model in VRAM.
+- Prompt playground: [bench/prompt_play.py](../bench/prompt_play.py) (`ollama.chat`, examples as
+  prior turns). Learned: small models copy surface text of examples (quotes, numbers), so vary
+  example values and keep each example's reply consistent with its facts; ambiguous keys
+  (`position`, `driver`) get misread.
+
+### Design direction (2026-10-11, pinned)
+
+- Fixed-shape reports (caught call) start as **templates**: LLM phrasing needs examples + check +
+  template fallback anyway, so templates are less work. Add LLM phrasing only if it feels robotic.
+- Every fact handed to the voice carries **what to do about it** (fuel short → save X% or box by
+  lap N), computed in code. No problem-without-a-solution messages.
+- The LLM's real job: an engineer who **wants to succeed**. Inputs = goal + code-computed
+  projections (laps to catch, catchable before flag, position if passed); LLM picks what matters
+  and the tone. Open: where the goal comes from (driver-set vs inferred), first projection
+  (laps-to-catch), how it resets targets when the goal slips.
+- Example pool: keyed by event, only relevant examples per call, stored as data so it doubles as
+  the eval set.
 
 ## Next
 
 0. His, parked: review items left from 2026-10-11. `iRacing` wrapper leaks `ir.ir` and never
    calls `check_iracing()`; failed connect is silent (`Car(idx=None)`); keep caught-call logic
    pure (snapshots in, result out) so it's testable against replays.
-1. His: Soma's prompt (few-shot, structured facts in) + a numbers/facts check.
-2. Eval: fixed set of 20–30 fact cases, run both models with his prompt, score with his check.
-   Pick 3B if it passes, else 8B. Model name as one setting. (Harness = tooling, fair for me.)
-3. His: caught-call detection (line crossing detected from `CarIdxLapDistPct` wrap; see
-   iRacing's lapTiming sample logic).
-4. Telemetry recorder + replay for desk testing.
+1. His: caught-call detection (line crossing detected from `CarIdxLapDistPct` wrap; see
+   `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
+2. His: first projection (laps to catch car ahead), then goal-aware LLM call.
+3. His: numbers/facts check; decide digits-from-LLM + code spells numbers for Piper.
+4. Eval harness over the example pool, 3B vs 8B, temperature sweep. (Tooling, fair for me.)
+5. Telemetry recorder + replay for desk testing.
+
+Pending from him: case-only rename `git mv src/soma/iRacing.py src/soma/iracing.py`;
+`bench/prompt_play.py` + `ollama` dep (pyproject/uv.lock) uncommitted.
