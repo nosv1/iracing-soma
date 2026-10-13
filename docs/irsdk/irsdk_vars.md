@@ -332,3 +332,300 @@ some cars expose extra variables (brake bias, wing adjustment, etc.).
 | `YawNorth` | Yaw orientation relative to north | rad |
 | `YawRate` | Yaw rate | rad/s |
 | `YawRate_ST` | Yaw rate at 360 Hz | rad/s |
+
+## Session info (YAML)
+
+Separate from the telemetry variables above. iRacing keeps a YAML document in the same shared
+memory and rewrites it occasionally (driver joins, session change, results), bumping the
+`SessionInfoUpdate` telemetry variable each time. `ir[key]` checks telemetry names first, then
+falls back to a top-level YAML section, so `ir['DriverInfo']` returns a parsed dict even though
+`DriverInfo` is not in `ir.var_headers_names`. Names overlap confusingly: `ir['SessionInfo']` is
+YAML, `SessionTime` / `SessionNum` are telemetry.
+
+Keys below were captured from a live offline AI session (2026-10-13, FIA F4 at Ledenon, weekend of
+practice → qualify → race, sampled during practice). `[]` marks a list. Not exhaustive: other
+session types and series may add keys.
+
+iRacing doesn't document these keys; the descriptions are ours, inferred from names and observed
+values, and "Unknown" means just that. Values with a unit are strings with the unit appended
+(`TrackLength: 3.0807 km`), so parse before doing math; the Unit column shows that suffix, or the
+implied unit for bare numbers.
+
+Not listed:
+
+- `CarSetup`: car-specific setup sheet (tires, chassis, ...); keys differ per car. Has
+  `UpdateCount`.
+- `QualifyResultsInfo.Results`: empty (`None`) in this session.
+
+Observed in the same session, worth knowing:
+
+- `CarIdx*` arrays have **72** slots (not 64). Pace car was `CarIdx` 64 (`PaceCarIdx`).
+- `CarIdxPosition` / `CarIdxClassPosition`: `0` for empty slots 20–63, `-1` for slots 64–71 (incl.
+  the pace car), 1-based for scored cars. A car with `CarIdxTrackSurface` -1 (not in world) kept
+  its position.
+- YAML `ResultsPositions[].ClassPosition` was `0` for P1, so it looks **0-based**, unlike
+  `Position` and the telemetry `CarIdxClassPosition`. Verify in a multiclass race.
+- `CarIdxLapDistPct`, `CarIdxLap`, `CarIdxTrackSurface` are `-1` for empty slots and for cars not
+  in the world (player in garage).
+
+### WeekendInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `Encoding` | Text encoding of the YAML strings, e.g. ISO_8859_1 |  |
+| `TrackName` | Internal track name, e.g. ledenon |  |
+| `TrackID` | iRacing track id |  |
+| `TrackLength` | Track length as measured by the sim | km |
+| `TrackLengthOfficial` | Published track length | km |
+| `TrackDisplayName` | Full track name for display |  |
+| `TrackDisplayShortName` | Short track name for display |  |
+| `TrackConfigName` | Track layout name, empty if only one layout |  |
+| `TrackCity` | Track city |  |
+| `TrackState` | Track state or region |  |
+| `TrackCountry` | Track country |  |
+| `TrackAltitude` | Track altitude | m |
+| `TrackLatitude` | Track latitude (YAML labels it m; value is degrees) | deg |
+| `TrackLongitude` | Track longitude (YAML labels it m; value is degrees) | deg |
+| `TrackNorthOffset` | Rotation of track coordinates from north | rad |
+| `TrackNumTurns` | Number of corners |  |
+| `TrackPitSpeedLimit` | Pit lane speed limit | kph |
+| `TrackPaceSpeed` | Pace car speed under caution | kph |
+| `TrackNumPitStalls` | Number of pit stalls |  |
+| `TrackType` | Track type, e.g. road course, oval |  |
+| `TrackDirection` | Lap direction, e.g. neutral |  |
+| `TrackWeatherType` | Weather model, e.g. Static |  |
+| `TrackSkies` | Sky condition at session start |  |
+| `TrackSurfaceTemp` | Track surface temperature at session start | C |
+| `TrackSurfaceTempCrew` | Track surface temperature as reported to the crew | C |
+| `TrackAirTemp` | Air temperature at session start | C |
+| `TrackAirPressure` | Air pressure at session start | Hg |
+| `TrackAirDensity` | Air density at session start | kg/m^3 |
+| `TrackWindVel` | Wind speed at session start | m/s |
+| `TrackWindDir` | Wind direction at session start | rad |
+| `TrackRelativeHumidity` | Relative humidity at session start | % |
+| `TrackFogLevel` | Fog level at session start | % |
+| `TrackPrecipitation` | Precipitation at session start | % |
+| `TrackCleanup` | 1 if rubber/marbles reset between sessions |  |
+| `TrackDynamicTrack` | 1 if track state evolves during the session |  |
+| `TrackVersion` | Track asset version |  |
+| `SeriesID` | Series id, 0 offline |  |
+| `SeasonID` | Season id, 0 offline |  |
+| `SessionID` | Session id, 0 offline |  |
+| `SubSessionID` | Subsession id (the results id online), 0 offline |  |
+| `LeagueID` | League id, 0 if not a league session |  |
+| `LeagueSeasonID` | League season id |  |
+| `Official` | 1 if the session counts officially |  |
+| `RaceWeek` | Week of the season |  |
+| `EventType` | Event type, e.g. Race, Practice, Test |  |
+| `Category` | Racing category, e.g. Road, Oval, Formula |  |
+| `SimMode` | Sim mode, e.g. full |  |
+| `TeamRacing` | 1 if team (multi-driver) event |  |
+| `MinDrivers` | Minimum drivers per team |  |
+| `MaxDrivers` | Maximum drivers per team |  |
+| `DCRuleSet` | Driver change rules |  |
+| `QualifierMustStartRace` | 1 if a qualifier must start the race |  |
+| `NumCarClasses` | Number of car classes in the session |  |
+| `NumCarTypes` | Number of car models in the session (pace car counts) |  |
+| `HeatRacing` | 1 if heat-race format |  |
+| `AltAssetTag` | Unknown |  |
+| `BuildType` | Sim build type |  |
+| `BuildTarget` | Sim build target |  |
+| `BuildVersion` | Sim build version |  |
+| `RaceFarm` | Server farm the session runs on, empty offline |  |
+| `WeekendOptions.NumStarters` | Number of starters |  |
+| `WeekendOptions.StartingGrid` | Grid layout, e.g. single file |  |
+| `WeekendOptions.QualifyScoring` | How qualifying is scored, e.g. best lap |  |
+| `WeekendOptions.CourseCautions` | Caution rule, e.g. local, full |  |
+| `WeekendOptions.StandingStart` | 1 if standing start |  |
+| `WeekendOptions.ShortParadeLap` | 1 if short parade lap |  |
+| `WeekendOptions.Restarts` | Restart rule |  |
+| `WeekendOptions.WeatherType` | Weather model chosen for the event |  |
+| `WeekendOptions.Skies` | Sky setting chosen for the event |  |
+| `WeekendOptions.WindDirection` | Wind direction setting, compass point |  |
+| `WeekendOptions.WindSpeed` | Wind speed setting | km/h |
+| `WeekendOptions.WeatherTemp` | Air temperature setting | C |
+| `WeekendOptions.RelativeHumidity` | Humidity setting | % |
+| `WeekendOptions.FogLevel` | Fog setting | % |
+| `WeekendOptions.TimeOfDay` | In-sim start time of day |  |
+| `WeekendOptions.Date` | In-sim date |  |
+| `WeekendOptions.EarthRotationSpeedupFactor` | Time-of-day speedup factor |  |
+| `WeekendOptions.Unofficial` | 1 if unofficial |  |
+| `WeekendOptions.CommercialMode` | Licence mode, e.g. consumer |  |
+| `WeekendOptions.NightMode` | Night setting, e.g. variable |  |
+| `WeekendOptions.IsFixedSetup` | 1 if fixed-setup event |  |
+| `WeekendOptions.StrictLapsChecking` | Lap validity rule |  |
+| `WeekendOptions.HasOpenRegistration` | 1 if open registration |  |
+| `WeekendOptions.HardcoreLevel` | Unknown; possibly driving-aid restriction level |  |
+| `WeekendOptions.NumJokerLaps` | Required joker laps (rallycross) |  |
+| `WeekendOptions.IncidentLimit` | Incident points before disqualification |  |
+| `WeekendOptions.IncidentWarningInitialLimit` | Incident points before first warning |  |
+| `WeekendOptions.IncidentWarningSubsequentLimit` | Incident points between later warnings |  |
+| `WeekendOptions.FastRepairsLimit` | Fast repairs allowed |  |
+| `WeekendOptions.GreenWhiteCheckeredLimit` | Green-white-checkered attempts allowed |  |
+| `TelemetryOptions.TelemetryDiskFile` | Path of the .ibt being written, empty if disk logging is off |  |
+
+### SessionInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `CurrentSessionNum` | Index into Sessions of the current session (same as telemetry SessionNum) |  |
+| `Sessions[].SessionNum` | Session index |  |
+| `Sessions[].SessionLaps` | Lap limit, or unlimited |  |
+| `Sessions[].SessionTime` | Time limit, or unlimited | sec |
+| `Sessions[].SessionNumLapsToAvg` | Laps averaged for qualifying results |  |
+| `Sessions[].SessionType` | Session type, e.g. Practice, Open Qualify, Race |  |
+| `Sessions[].SessionTrackRubberState` | Starting rubber level |  |
+| `Sessions[].SessionName` | Session display name |  |
+| `Sessions[].SessionSubType` | Session subtype |  |
+| `Sessions[].SessionSkipped` | 1 if session was skipped |  |
+| `Sessions[].SessionRunGroupsUsed` | 1 if run groups were used |  |
+| `Sessions[].SessionEnforceTireCompoundChange` | 1 if a tyre compound change is required |  |
+| `Sessions[].ResultsPositions[].Position` | Overall position, 1-based |  |
+| `Sessions[].ResultsPositions[].ClassPosition` | Class position; 0 for P1 observed, so looks 0-based |  |
+| `Sessions[].ResultsPositions[].CarIdx` | Car index |  |
+| `Sessions[].ResultsPositions[].Lap` | Lap the scoring time was set on |  |
+| `Sessions[].ResultsPositions[].Time` | Scoring time (best lap in practice/qualify) | s |
+| `Sessions[].ResultsPositions[].FastestLap` | Lap number of fastest lap |  |
+| `Sessions[].ResultsPositions[].FastestTime` | Fastest lap time | s |
+| `Sessions[].ResultsPositions[].LastTime` | Last lap time | s |
+| `Sessions[].ResultsPositions[].LapsLed` | Laps led |  |
+| `Sessions[].ResultsPositions[].LapsComplete` | Laps completed |  |
+| `Sessions[].ResultsPositions[].JokerLapsComplete` | Joker laps completed |  |
+| `Sessions[].ResultsPositions[].LapsDriven` | Laps driven by this driver (team events) |  |
+| `Sessions[].ResultsPositions[].Incidents` | Incident points |  |
+| `Sessions[].ResultsPositions[].ReasonOutId` | Retirement reason code, 0 = running |  |
+| `Sessions[].ResultsPositions[].ReasonOutStr` | Retirement reason, e.g. Running |  |
+| `Sessions[].ResultsFastestLap[].CarIdx` | Car index with the session's fastest lap |  |
+| `Sessions[].ResultsFastestLap[].FastestLap` | Lap number of the fastest lap |  |
+| `Sessions[].ResultsFastestLap[].FastestTime` | Fastest lap time | s |
+| `Sessions[].ResultsAverageLapTime` | Average lap time, -1 if not set | s |
+| `Sessions[].ResultsNumCautionFlags` | Number of cautions |  |
+| `Sessions[].ResultsNumCautionLaps` | Laps under caution |  |
+| `Sessions[].ResultsNumLeadChanges` | Lead changes |  |
+| `Sessions[].ResultsLapsComplete` | Laps completed by the leader, -1 if not set |  |
+| `Sessions[].ResultsOfficial` | 1 once results are official |  |
+
+### CameraInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `Groups[].GroupNum` | Camera group number |  |
+| `Groups[].GroupName` | Camera group name, e.g. Nose |  |
+| `Groups[].Cameras[].CameraNum` | Camera number within the group |  |
+| `Groups[].Cameras[].CameraName` | Camera name |  |
+| `Groups[].IsScenic` | True for scenic (non-car) camera groups |  |
+
+### RadioInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `SelectedRadioNum` | Active radio |  |
+| `Radios[].RadioNum` | Radio number |  |
+| `Radios[].HopCount` | Unknown |  |
+| `Radios[].NumFrequencies` | Number of frequencies |  |
+| `Radios[].TunedToFrequencyNum` | Frequency currently tuned |  |
+| `Radios[].ScanningIsOn` | 1 if scanning |  |
+| `Radios[].Frequencies[].FrequencyNum` | Frequency number |  |
+| `Radios[].Frequencies[].FrequencyName` | Frequency name, e.g. @ALLTEAMS |  |
+| `Radios[].Frequencies[].Priority` | Scan priority |  |
+| `Radios[].Frequencies[].CarIdx` | Owning car index, -1 if none |  |
+| `Radios[].Frequencies[].EntryIdx` | Owning entry index, -1 if none |  |
+| `Radios[].Frequencies[].ClubID` | Owning club id, 0 if none |  |
+| `Radios[].Frequencies[].CanScan` | 1 if included in scanning |  |
+| `Radios[].Frequencies[].CanSquawk` | 1 if you can transmit on it |  |
+| `Radios[].Frequencies[].Muted` | 1 if muted |  |
+| `Radios[].Frequencies[].IsMutable` | 1 if it can be muted |  |
+| `Radios[].Frequencies[].IsDeletable` | 1 if it can be removed |  |
+
+### DriverInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `DriverCarIdx` | Your car index (same as telemetry PlayerCarIdx) |  |
+| `DriverUserID` | Your iRacing customer id |  |
+| `PaceCarIdx` | Pace car's car index |  |
+| `DriverIsAdmin` | 1 if you are session admin |  |
+| `DriverHeadPosX` | Driver eye position in car, X | m |
+| `DriverHeadPosY` | Driver eye position in car, Y | m |
+| `DriverHeadPosZ` | Driver eye position in car, Z | m |
+| `DriverCarIsElectric` | 1 if your car is electric |  |
+| `DriverCarIdleRPM` | Idle RPM | revs/min |
+| `DriverCarRedLine` | Redline RPM | revs/min |
+| `DriverCarEngCylinderCount` | Engine cylinder count |  |
+| `DriverCarFuelKgPerLtr` | Fuel density | kg/l |
+| `DriverCarFuelMaxLtr` | Fuel tank capacity | l |
+| `DriverCarMaxFuelPct` | Fraction of tank allowed (BoP) |  |
+| `DriverCarGearNumForward` | Forward gears |  |
+| `DriverCarGearNeutral` | Neutral gear number |  |
+| `DriverCarGearReverse` | Reverse gears |  |
+| `DriverGearboxType` | Gearbox type, e.g. Sequential |  |
+| `DriverGearboxControlType` | Gearbox control type |  |
+| `DriverCarShiftAid` | Shift aid setting |  |
+| `DriverCarSLFirstRPM` | Shift light: first light RPM | revs/min |
+| `DriverCarSLShiftRPM` | Shift light: shift-point RPM | revs/min |
+| `DriverCarSLLastRPM` | Shift light: last light RPM | revs/min |
+| `DriverCarSLBlinkRPM` | Shift light: blink RPM | revs/min |
+| `DriverCarVersion` | Car asset version |  |
+| `DriverPitTrkPct` | Your pit stall position as fraction of lap (same scale as CarIdxLapDistPct) | % |
+| `DriverCarEstLapTime` | Sim's estimated lap time for your car here | s |
+| `DriverSetupName` | Loaded setup file |  |
+| `DriverSetupIsModified` | 1 if setup changed since load |  |
+| `DriverSetupLoadTypeName` | Setup source, e.g. user |  |
+| `DriverSetupPassedTech` | 1 if setup passed tech |  |
+| `DriverIncidentCount` | Your incident points |  |
+| `DriverBrakeCurvingFactor` | Unknown; brake pedal curve setting? |  |
+| `DriverTires[].TireIndex` | Tyre compound index |  |
+| `DriverTires[].TireCompoundType` | Tyre compound name, e.g. Hard |  |
+| `Drivers[].CarIdx` | Car index; key into all CarIdx* telemetry arrays |  |
+| `Drivers[].UserName` | Driver display name |  |
+| `Drivers[].AbbrevName` | Abbreviated name |  |
+| `Drivers[].Initials` | Initials |  |
+| `Drivers[].UserID` | Driver customer id |  |
+| `Drivers[].TeamID` | Team id, 0 if none |  |
+| `Drivers[].TeamName` | Team name (driver name if no team) |  |
+| `Drivers[].CarNumber` | Car number as string (may have leading zeros) |  |
+| `Drivers[].CarNumberRaw` | Car number as integer |  |
+| `Drivers[].CarPath` | Internal car name |  |
+| `Drivers[].CarClassID` | Car class id |  |
+| `Drivers[].CarID` | Car model id |  |
+| `Drivers[].CarIsPaceCar` | 1 for the pace car |  |
+| `Drivers[].CarIsAI` | 1 if AI driver |  |
+| `Drivers[].CarIsElectric` | 1 if electric |  |
+| `Drivers[].CarScreenName` | Car display name |  |
+| `Drivers[].CarScreenNameShort` | Short car display name |  |
+| `Drivers[].CarCfg` | Car config index, -1 if none |  |
+| `Drivers[].CarCfgName` | Car config name |  |
+| `Drivers[].CarCfgCustomPaintExt` | Custom paint suffix for config |  |
+| `Drivers[].CarClassShortName` | Class short name, empty in single-class |  |
+| `Drivers[].CarClassRelSpeed` | Relative speed of class (for ordering classes) |  |
+| `Drivers[].CarClassLicenseLevel` | Licence level required for class |  |
+| `Drivers[].CarClassMaxFuelPct` | Class fuel limit (BoP) | % |
+| `Drivers[].CarClassWeightPenalty` | Class weight penalty (BoP) | kg |
+| `Drivers[].CarClassPowerAdjust` | Class power adjustment (BoP) | % |
+| `Drivers[].CarClassDryTireSetLimit` | Dry tyre sets allowed | % |
+| `Drivers[].CarClassColor` | Class colour as integer RGB |  |
+| `Drivers[].CarClassEstLapTime` | Sim's estimated lap time for the class here | s |
+| `Drivers[].IRating` | iRating |  |
+| `Drivers[].LicLevel` | Licence level |  |
+| `Drivers[].LicSubLevel` | Licence sublevel (safety rating x100) |  |
+| `Drivers[].LicString` | Licence for display, e.g. A 3.50 |  |
+| `Drivers[].LicColor` | Licence colour |  |
+| `Drivers[].IsSpectator` | 1 if spectating |  |
+| `Drivers[].CarDesignStr` | Car paint pattern and colours |  |
+| `Drivers[].HelmetDesignStr` | Helmet pattern and colours |  |
+| `Drivers[].SuitDesignStr` | Suit pattern and colours |  |
+| `Drivers[].BodyType` | Driver body model |  |
+| `Drivers[].FaceType` | Driver face model |  |
+| `Drivers[].HelmetType` | Helmet model |  |
+| `Drivers[].CarNumberDesignStr` | Car number font and colours |  |
+| `Drivers[].CarSponsor_1` | Sponsor decal id |  |
+| `Drivers[].CarSponsor_2` | Sponsor decal id |  |
+| `Drivers[].CurDriverIncidentCount` | Incident points of the current driver |  |
+| `Drivers[].TeamIncidentCount` | Incident points of the team |  |
+
+### SplitTimeInfo
+
+| Variable | Description | Unit |
+|---|---|---|
+| `Sectors[].SectorNum` | Sector number |  |
+| `Sectors[].SectorStartPct` | Sector start as fraction of lap | % |
