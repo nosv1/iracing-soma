@@ -37,21 +37,54 @@ Claude's notes for this repo. Cross-project context lives in the hub:
   template fallback anyway, so templates are less work. Add LLM phrasing only if it feels robotic.
 - Every fact handed to the voice carries **what to do about it** (fuel short → save X% or box by
   lap N), computed in code. No problem-without-a-solution messages.
-- The LLM's real job: an engineer who **wants to succeed**. Inputs = goal + code-computed
+- (Superseded 10-13 by the router role below; kept as a later option.) The LLM's real job: an
+  engineer who **wants to succeed**. Inputs = goal + code-computed
   projections (laps to catch, catchable before flag, position if passed); LLM picks what matters
   and the tone. Open: where the goal comes from (driver-set vs inferred), first projection
   (laps-to-catch), how it resets targets when the goal slips.
 - Example pool: keyed by event, only relevant examples per call, stored as data so it doubles as
   the eval set.
 
+### LLM role narrowed (2026-10-13, brainstorm, pinned)
+
+He doesn't trust 3B/8B to write code, and he's right: live code generation can't be checked
+mid-race. Rule: an LLM job is OK only if code can cheaply check its output.
+
+- **No live code fallback.** Unknown question → "don't have that" + log it. He writes the new
+  built-in from the log between sessions (promotion loop kept, minus generated code). Hub spec
+  still describes the fallback; update it there.
+- **LLM = router.** Spoken question → `{"fn", "args"}`, `none`, or `{"clarify": [candidates]}`.
+  Code validates fn/args. On `clarify`, code (not the LLM) asks "fuel or race?" from the
+  candidate list; one pending question is the only cross-turn state. Prefer answering both when
+  they fit in one line ("12 to go, fuel for 14") over asking; asking costs a second exchange.
+- **Functions return facts + action** (pinned rule above); each ships a template sentence. LLM
+  phrasing is an optional layer behind the numbers check, deferred.
+- **Parameterize by car**: `gap_to(car)`, `best_lap(car)`; "leader"/"ahead"/"behind"/name are
+  args. Hard part is arg resolution (names, car numbers, Whisper mishearing) — open whether the
+  LLM resolves or passes the raw phrase to code matching against the driver list.
+
+His first questions: gap to leader; best lap; leader best lap; expected finish position;
+expected laps left; expected laps of fuel; am I being caught. Notes from discussion:
+
+- Every "expected" is a modeling choice that's his: fuel = fuel ÷ avg burn over which laps
+  (exclude pit/out/yellow?); laps left in a timed race follows the leader's pace (check
+  `SessionLapsRemainEx` first); finish position needs everyone's pace + pending stops — do last.
+  Each states its method ("on last 5 laps' burn").
+- "Am I being caught?" is the caught-call projection reversed; pure laps-to-catch gets both.
+- "Laps left" vs "fuel laps" is a real ambiguity → candidate for a combined fuel-vs-race
+  function: "12 to go, fuel for 11. Save 10%, or box lap 8." Templates suffice.
+
 ## Next
 
-0. His, parked: review items left from 2026-10-11. `iRacing` wrapper leaks `ir.ir` and never
-   calls `check_iracing()`; failed connect is silent (`Car(idx=None)`); keep caught-call logic
+0. His, review: `check_iracing()` ends with an unconditional `logger.error("...failed to
+   connect")`, so it logs failure even on success (fix now). Still open from 10-11: `main.py`
+   reaches into `ir.ir[...]`; failed connect still gives `Car(idx=None)`; keep caught-call logic
    pure (snapshots in, result out) so it's testable against replays.
 1. His: caught-call detection (line crossing detected from `CarIdxLapDistPct` wrap; see
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
-2. His: first projection (laps to catch car ahead), then goal-aware LLM call.
-3. His: numbers/facts check; decide digits-from-LLM + code spells numbers for Piper.
-4. Eval harness over the example pool, 3B vs 8B, temperature sweep. (Tooling, fair for me.)
+2. His: function signatures for the question list above, then 5–8 radio-style variants per
+   question as `question → expected call` (incl. ambiguous ones → `clarify`). His spec.
+3. Mine once (2) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
+   correct `clarify` separately.
+4. His: first projection (laps to catch), numbers/facts check.
 5. Telemetry recorder + replay for desk testing.
