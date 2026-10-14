@@ -44,8 +44,13 @@ def cli() -> None:
 
 
 def main(record_path: Path | None, recordings_path: Path | None) -> None:
-    ir = iRacing()
-    ir.connect()
+    loader: Loader | None = None
+    if recordings_path is not None:
+        loader = Loader(recordings_path=recordings_path)
+
+    if loader is None:
+        ir = iRacing()
+        ir.connect()
 
     cur_dir = Path(__file__).resolve().parent
     voices_dir = cur_dir / "voices"
@@ -53,14 +58,6 @@ def main(record_path: Path | None, recordings_path: Path | None) -> None:
     voice = PiperVoice.load(voice_path)
 
     recorder: Recorder | None = None
-    if record_path is not None:
-        # starts recorder thread
-        recorder = Recorder(output_dir=record_path, recorded_fps=10, iracing_fps=60)
-
-    loader: Loader | None = None
-    if recordings_path is not None:
-        loader = Loader(recordings_path=recordings_path)
-
     # creating this file stops the loop cleanly (finally still flushes the recorder)
     stop_file = (record_path or Path.cwd()) / "STOP"
     stop_file.unlink(
@@ -70,6 +67,7 @@ def main(record_path: Path | None, recordings_path: Path | None) -> None:
     logger.info(f"create {stop_file} to stop")
 
     session: Session | None = None
+    reconnect_timer = 1
 
     try:
         while True:
@@ -81,23 +79,42 @@ def main(record_path: Path | None, recordings_path: Path | None) -> None:
                     break
                 next_stop_check = now + 1.0
 
-            # freeze data stream
-            if loader is None:
-                ir.ir.freeze_var_buffer_latest()
+            if ir.ir.is_connected:
+                if loader is None:
+                    if recorder is None and record_path is not None:
+                        # starts recorder thread
+                        recorder = Recorder(
+                            output_dir=record_path,
+                            recorded_fps=10,
+                            iracing_fps=ir.ir._header.tick_rate,
+                        )
 
-                if recorder is not None:
-                    recorder.record_iRacing_session_yaml(ir)
-                    recorder.queue_iRacing_frame(ir)
+                    # freeze data stream
+                    ir.ir.freeze_var_buffer_latest()
 
-            session = Session.from_dict(ir.ir)
+                    if recorder is not None:
+                        recorder.record_iRacing_session_yaml(ir)
+                        recorder.queue_iRacing_frame(ir)
 
-            # unfreeze data stream
-            if loader is None:
-                ir.ir.unfreeze_var_buffer_latest()
-                if not ir.state.is_ir_connected:
-                    break
+                # session = Session.from_dict(ir.ir)
+
+                # unfreeze data stream
+                if loader is None:
+                    ir.ir.unfreeze_var_buffer_latest()
+
+            # iRacing disconnected
+            else:
+                ir.disconnect()
+                reconnect_timer *= 2
+                reconnect_timer = min(30, reconnect_timer)
+                logger.info(f"Attempting to re-connect in {reconnect_timer} seconds...")
+                time.sleep(reconnect_timer)
+                ir.connect()
 
     finally:
+        if loader is None:
+            ir.disconnect()
+
         if recorder is not None:
             recorder.q.put(recorder.STOP)
             recorder._t.join()
