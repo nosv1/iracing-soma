@@ -64,7 +64,8 @@ mid-race. Rule: an LLM job is OK only if code can cheaply check its output.
   LLM resolves or passes the raw phrase to code matching against the driver list.
 
 His first questions: gap to leader; best lap; leader best lap; expected finish position;
-expected laps left; expected laps of fuel; am I being caught. Notes from discussion:
+expected laps left; expected laps of fuel; am I being caught; **how long to repair** (added
+10-14: know the cost before committing to the pit entry). Notes from discussion:
 
 - Every "expected" is a modeling choice that's his: fuel = fuel ÷ avg burn over which laps
   (exclude pit/out/yellow?); laps left in a timed race follows the leader's pace (check
@@ -73,6 +74,13 @@ expected laps left; expected laps of fuel; am I being caught. Notes from discuss
 - "Am I being caught?" is the caught-call projection reversed; pure laps-to-catch gets both.
 - "Laps left" vs "fuel laps" is a real ambiguity → candidate for a combined fuel-vs-race
   function: "12 to go, fuel for 11. Save 10%, or box lap 8." Templates suffice.
+- Repair time: `PitRepairLeft` (mandatory, s) and `PitOptRepairLeft` (optional, s), plus
+  `FastRepairAvailable` (255 = unlimited) / `FastRepairUsed`. Unverified: whether they're
+  populated on track before pitting (OblivionsPeak's engineer reads `PitRepairLeft` on track to
+  detect damage, which suggests yes) and how repair time stacks with fuel/tyre service. Check
+  both in a recording with damage. The action is his call: mandatory-only vs + optional vs fast
+  repair, priced against pit lane loss and laps left ("45 s required, 30 more optional; fast
+  repair available").
 
 ### 2026-10-13 (evening): recorder first, started
 
