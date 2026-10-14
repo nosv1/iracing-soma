@@ -99,15 +99,34 @@ eval) needs real race data to test against.
   latest `recorder.py` (tick-reset handling, `exist_ok=False`).
 - **First recording** (online, practice → qualify → 12-min race, `recordings/`, gitignored):
   15,674 frames, all valid JSON, 326 MB raw (~20.8 KB/frame; gzip measured ~10–12x on track).
-  Final `session.yaml` has official race results. I also snapshotted every YAML version
-  externally (his recorder overwrites one file): `recordings/yaml_history/`, 172 files.
+  Final `session.yaml` has official race results. He moved it to
+  `recordings/20261014-110000/`. I also snapshotted every YAML version externally (his recorder
+  overwrites one file): `yaml_history/`, 172 files, renamed `<SessionTick>-<hash>.yaml` (tick
+  the YAML took effect, estimated from wall-clock snapshot time, ~1 s; aligned to the frames'
+  `SessionNum` changes) + `index.json` with original names. Loader rule: newest YAML with
+  tick <= frame tick.
 - Seen: `SessionTime` **resets per session** (139 → 1014 s over ~26 min wall). Timeline across
-  sessions needs `SessionNum` + `SessionTime` or `SessionTick`. No tick-reset log fired, so
-  `SessionTick` likely continues across sessions; confirm from frames.
+  sessions needs `SessionNum` + `SessionTime` or `SessionTick`. **`SessionTick` is continuous**
+  across all three sessions: every frame gap exactly 6, no resets, no drops.
+- `SessionInfoUpdate` is a shared-memory header counter (`ir.session_info_update`), **not** a
+  telemetry var, so it is not in the frames. Record it into each frame to pair YAML exactly.
 - I ran it in the background while he raced in VR, with spoken status via Piper
   (`en_GB-alan-medium`, now in `voices/`): only on session/flag change, stall, crash. He liked
   it. Lessons for Soma: silence = OK; short templates were enough; load the voice once (per-line
   model load cost ~9 s).
+
+### 2026-10-14 (midday): loader design, his
+
+He's building replay (`src/soma/loader.py`, started). Where he landed (his reasoning, coached):
+the **frame dict is the interface**. `Session`/`Car`/`Driver` take a frame instead of `ir.ir`,
+so nothing downstream knows live vs replay, and the `ir.ir` leak goes away. Loader reads
+`frames.txt` one line at a time (generator + `yield`, `json.loads` per line), never the whole
+file. Open, his call:
+
+- Frames lack YAML sections (`DriverInfo`). Option A: a `Snapshot(frame, yaml)` with
+  `__getitem__` that mirrors pyirsdk's lookup (frame first, then YAML), so `x[KEY]` code stays.
+  Option B: pass frame and YAML separately; explicit, more signature churn.
+- Live mode must build the same frame; only when `SessionTick` moves, as the recorder does.
 
 ## Next
 
@@ -117,19 +136,18 @@ eval) needs real race data to test against.
    - [design] `exist_ok=False` + fixed names (`frames.txt`, `session.yaml`) = one run per
      folder and a crashed run blocks the next. Per-run subfolder (timestamp) fixes both.
    - [design] Only the last `session.yaml` survives; keep each version (numbered by
-     `SessionInfoUpdate`).
+     `SessionInfoUpdate`), and write `session_info_update` into each frame.
    - [nit] gzip (`gzip.open(..., "at")`); `disconnect()` logs "Connected"; `Driver.from_irsdk`
      builds `Driver(...)` not `cls(...)`; `Session.session_time` is a float.
-1. His: explore the recording. Open questions it can answer: `SessionTick` across sessions,
-   `CarIdxPosition` on the grid before green, what `CarIdxF2Time` holds, YAML `ClassPosition`
-   base.
-2. His: tests for the recorder (round-trip) and a replay source with the live wrapper's
-   interface.
-3. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
+1. His: loader / replay source (above), then main loop that takes live or replay.
+2. His: explore the recording. Open: `CarIdxPosition` on the grid before green, what
+   `CarIdxF2Time` holds, YAML `ClassPosition` base.
+3. His: tests for the recorder (round-trip) and loader.
+4. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
    Keep it pure (frames in, event out) so it runs against recordings.
-4. His: function signatures for the question list above, then 5–8 radio-style variants per
+5. His: function signatures for the question list above, then 5–8 radio-style variants per
    question as `question → expected call` (incl. ambiguous ones → `clarify`). His spec.
-5. Mine once (4) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
+6. Mine once (5) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
    correct `clarify` separately.
-6. His: first projection (laps to catch), numbers/facts check.
+7. His: first projection (laps to catch), numbers/facts check.
