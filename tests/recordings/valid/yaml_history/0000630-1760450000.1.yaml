@@ -1,0 +1,17 @@
+---
+WeekendInfo:
+ Encoding: ISO_8859_1
+ TrackName: winton club
+
+DriverInfo:
+ DriverCarIdx: 1
+ Drivers:
+ - CarIdx: 0
+   UserName: Pace Car
+ - CarIdx: 1
+   UserName: Ånders Nilsson
+ - CarIdx: 2
+   UserName: Late Joiner 1
+
+# update 1
+...

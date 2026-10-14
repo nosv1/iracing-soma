@@ -1,0 +1,10 @@
+{"SessionTick": 600, "SessionNum": 0, "SessionTime": 0.0, "PlayerCarIdx": 1}
+{"SessionTick": 606, "SessionNum": 0, "SessionTime": 0.1, "PlayerCarIdx": 1}
+{"SessionTick": 612, "SessionNum": 0, "SessionTime": 0.2, "PlayerCarIdx": 1}
+{"SessionTick": 618, "SessionNum": 0, "SessionTime": 0.3, "PlayerCarIdx": 1}
+{"SessionTick": 624, "SessionNum": 0, "SessionTime": 0.4, "PlayerCarIdx": 1}
+{"SessionTick": 630, "SessionNum": 0, "SessionTime": 0.5, "PlayerCarIdx": 1}
+{"SessionTick": 636, "SessionNum": 0, "SessionTime": 0.6, "PlayerCarIdx": 1}
+{"SessionTick": 642, "SessionNum": 0, "SessionTime": 0.7, "PlayerCarIdx": 1}
+{"SessionTick": 648, "SessionNum": 0, "SessionTime": 0.8, "PlayerCarIdx": 1}
+{"SessionTick": 654, "SessionNum": 0, "SessionTime": 0.9, "PlayerCarIdx": 1}
