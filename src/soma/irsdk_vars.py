@@ -18,6 +18,8 @@ PLAYER_CAR_IDX = "PlayerCarIdx"
 SESSION_TICK = "SessionTick"
 # Seconds since session start (s)
 SESSION_TIME = "SessionTime"
+# Session number
+SESSION_NUM = "SessionNum"
 # GPS vehicle speed (m/s)
 SPEED = "Speed"
 
