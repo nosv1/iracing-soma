@@ -29,8 +29,8 @@ class Recorder:
 
         self._output_dir.mkdir(parents=True, exist_ok=False)
         self._yaml_history_dir.mkdir(parents=True, exist_ok=False)
-        # {"files": [{"tick": int, "file": str}]}
-        self._yaml_idx: dict[str, list[dict[str, int | str]]] = {"files": []}
+        # {str(tick_number): str(file_name)}]}
+        self._yaml_idx: dict[str, str] = {}
 
         self._prev_session_info_update = -1
         self._prev_recorded_tick = 0
@@ -47,7 +47,7 @@ class Recorder:
         return self._tick_delay + self._prev_recorded_tick
 
     def update_yaml_idx(self, cur_tick: int, filename: str):
-        self._yaml_idx["files"].append({"tick": cur_tick, "file": filename})
+        self._yaml_idx[str(cur_tick)] = filename
         with open(self._yaml_history_dir / "index.json", "w+") as f:
             json.dump(self._yaml_idx, f, indent=4)
 
@@ -77,7 +77,8 @@ class Recorder:
         # update the index
         self.update_yaml_idx(cur_tick, filename)
 
-    def queue_iRacing_frame(self, ir: iRacing):
+    def queue_iRacing_frame(self, ir: iRacing) -> bool:
+        """returns bool on whether or not the frame was queued for recording"""
         # only queue the frame if enough ticks have passed
         cur_session_tick = self._cur_session_tick(ir)
         if cur_session_tick < self._prev_recorded_tick:
@@ -85,11 +86,17 @@ class Recorder:
             logger.info("Reset previous recorded tick")
 
         if cur_session_tick < self.next_recorded_tick:
-            return
+            return False
 
         self._prev_recorded_tick = cur_session_tick
 
         self.q.put(json.dumps({name: ir.ir[name] for name in ir.ir.var_headers_names}))
+        return True
+
+    def handle_new_tick(self, ir: iRacing):
+        queued = self.queue_iRacing_frame()
+        if queued:
+            self.record_iRacing_session_yaml()
 
     def writer(self):
         with open(self._output_dir / "frames.txt", "a") as f:
