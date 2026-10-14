@@ -12,7 +12,7 @@ logger = logging.getLogger(__file__)
 
 
 class Recorder:
-    def __init__(self, output_dir: Path, recorded_fps: int = 10, iracing_fps: int = 60):
+    def __init__(self, output_dir: Path, iracing_fps: int, recorded_fps: int = 10):
         self.init_time = datetime.now().strftime("%Y%m%d-%H%M%S")
 
         self._output_dir = output_dir / self.init_time
@@ -23,7 +23,7 @@ class Recorder:
         # 60 / 10 = 6 frames between recorded frames
         self._tick_delay = iracing_fps / recorded_fps
 
-        self.q: Queue[dict] = Queue()  # iRacing frames
+        self.q: Queue[str] = Queue()  # iRacing frames, json dumps
         # append this to the queue to stop the thread
         self.STOP = object()
 
@@ -34,7 +34,7 @@ class Recorder:
 
         self._prev_session_info_update = -1
         self._prev_recorded_tick = 0
-        self._cur_session_tick = lambda ir: ir[SESSION_TICK]
+        self._cur_session_tick = lambda ir: ir.ir[SESSION_TICK]
 
         self._t = threading.Thread(target=self.writer)
         self._t.start()
