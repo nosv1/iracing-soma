@@ -90,25 +90,46 @@ eval) needs real race data to test against.
   `session_info_update` change. Also WIP: `Session`, `Driver` (`@classmethod` constructors).
 - He thinks it records; not yet verified or tested.
 
+### 2026-10-14 (morning): first race recorded
+
+- Recorder fixed up and committed (`be8ad51`): 10 Hz via `SessionTick` delta (60 Hz confirmed:
+  header `tick_rate` 60, 60 ticks/s measured), JSON lines, freeze/unfreeze once per loop in
+  `main`, `Driver` constructors fixed. Uncommitted: STOP-file shutdown in `main.py` (mine, at his
+  request: create `<record dir>/STOP`, checked ~1 Hz, loop breaks so `finally` flushes), his
+  latest `recorder.py` (tick-reset handling, `exist_ok=False`).
+- **First recording** (online, practice → qualify → 12-min race, `recordings/`, gitignored):
+  15,674 frames, all valid JSON, 326 MB raw (~20.8 KB/frame; gzip measured ~10–12x on track).
+  Final `session.yaml` has official race results. I also snapshotted every YAML version
+  externally (his recorder overwrites one file): `recordings/yaml_history/`, 172 files.
+- Seen: `SessionTime` **resets per session** (139 → 1014 s over ~26 min wall). Timeline across
+  sessions needs `SessionNum` + `SessionTime` or `SessionTick`. No tick-reset log fired, so
+  `SessionTick` likely continues across sessions; confirm from frames.
+- I ran it in the background while he raced in VR, with spoken status via Piper
+  (`en_GB-alan-medium`, now in `voices/`): only on session/flag change, stall, crash. He liked
+  it. Lessons for Soma: silence = OK; short templates were enough; load the voice once (per-line
+  model load cost ~9 s).
+
 ## Next
 
-0. His, review of the WIP recorder before trusting a recording:
-   - [bug] Main loop has no pacing: it spins, queueing the same tick many times (~300 vars each).
-     File size and queue memory grow fast. Wait for a new tick (`SessionTick` changed) or sleep.
-   - [bug] `while ir.state.is_ir_connected` never goes false: `connect()` sets True without
-     checking `startup()`'s return, and nothing rechecks `ir.is_connected`. Only Ctrl+C exits.
-   - [design] Frames written as Python `repr` (`f"{item}"`); JSON lines would be loadable by
-     anything. Decide the format before recording much.
-   - [bug] `Driver.drivers_from_irsdk`: needs `(cls, ir)`; YAML nesting is
-     `ir['DriverInfo']['Drivers']`, code has it inside out.
-   - [nit] `disconnect()` logs "Connected"; `Session.session_time` is a float.
-1. His: tests for the recorder (round-trip: record → load → same values) and a replay source
-   with the same interface as the live wrapper.
-2. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
+0. His, recorder review (left after the fixes):
+   - [bug] `connect()` ignores `startup()`'s return: a first run crashed on `freeze` with
+     `_header` None while iRacing was loading. Leaving a session mid-run will do the same.
+   - [design] `exist_ok=False` + fixed names (`frames.txt`, `session.yaml`) = one run per
+     folder and a crashed run blocks the next. Per-run subfolder (timestamp) fixes both.
+   - [design] Only the last `session.yaml` survives; keep each version (numbered by
+     `SessionInfoUpdate`).
+   - [nit] gzip (`gzip.open(..., "at")`); `disconnect()` logs "Connected"; `Driver.from_irsdk`
+     builds `Driver(...)` not `cls(...)`; `Session.session_time` is a float.
+1. His: explore the recording. Open questions it can answer: `SessionTick` across sessions,
+   `CarIdxPosition` on the grid before green, what `CarIdxF2Time` holds, YAML `ClassPosition`
+   base.
+2. His: tests for the recorder (round-trip) and a replay source with the live wrapper's
+   interface.
+3. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
    Keep it pure (frames in, event out) so it runs against recordings.
-3. His: function signatures for the question list above, then 5–8 radio-style variants per
+4. His: function signatures for the question list above, then 5–8 radio-style variants per
    question as `question → expected call` (incl. ambiguous ones → `clarify`). His spec.
-4. Mine once (3) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
+5. Mine once (4) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
    correct `clarify` separately.
-5. His: first projection (laps to catch), numbers/facts check.
+6. His: first projection (laps to catch), numbers/facts check.
