@@ -1,3 +1,9 @@
+# Key names for irsdk lookups. See docs/irsdk/irsdk_vars.md.
+
+# --- Telemetry variables (per tick) ---
+
+# Cars position in race by car index
+CAR_IDX_POSITION = "CarIdxPosition"
 # Percent of available time fg thread took with a 1 sec avg (%)
 CPU_USAGE_FG = "CpuUsageFG"
 # Average frames per second (fps)
@@ -8,7 +14,20 @@ GPU_USAGE = "GpuUsage"
 IS_ON_TRACK = "IsOnTrack"
 # Players carIdx
 PLAYER_CAR_IDX = "PlayerCarIdx"
+# Current update number
+SESSION_TICK = "SessionTick"
 # Seconds since session start (s)
 SESSION_TIME = "SessionTime"
 # GPS vehicle speed (m/s)
 SPEED = "Speed"
+
+# --- Session info (YAML) ---
+
+# Section: driver/car metadata, incl. the Drivers list
+DRIVER_INFO = "DriverInfo"
+# DriverInfo.Drivers: one entry per car in the session
+DRIVERS = "Drivers"
+# DriverInfo.Drivers[].CarIdx: car index; key into all CarIdx* telemetry arrays
+CAR_IDX = "CarIdx"
+# Driver display name
+USER_NAME = "UserName"
