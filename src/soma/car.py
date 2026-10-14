@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from dataclasses import dataclass
 
 from irsdk import IRSDK
@@ -16,7 +15,7 @@ class Car:
         return Car(idx=idx, position=position)
 
     @classmethod
-    def cars_from_irsdk(cls, ir: IRSDK) -> Iterable[Car]:
+    def cars_from_irsdk(cls, ir: IRSDK) -> list[Car]:
         cars: list[Car] = []
         for i, position in enumerate(ir[CAR_IDX_POSITION]):
             cars.append(cls.from_irsdk(i, position))
