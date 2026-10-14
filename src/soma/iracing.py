@@ -1,27 +1,24 @@
 import logging
-from dataclasses import dataclass
+import time
 
 import irsdk
 
 logger = logging.getLogger(__file__)
 
 
-@dataclass
-class State:
-    is_ir_connected: bool = False
-
-
 class iRacing:  # noqa: N801  (brand name capitalization)
     def __init__(self):
         self.ir = irsdk.IRSDK()
-        self.state = State()
 
     def connect(self) -> None:
-        self.ir.startup()
-        self.state.is_ir_connected = True
-        logger.info("iRacing:Connected")
+        connected = self.ir.startup()
+        if connected:
+            logger.info("Connected")
+        else:
+            logger.info("iRacing sim is not running")
 
     def disconnect(self):
+        was_connected = self.ir.is_connected
         self.ir.shutdown()
-        self.state.is_ir_connected = False
-        logger.info("iRacing:Connected")
+        if was_connected:
+            logger.info("Disconnected")
