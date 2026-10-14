@@ -1,0 +1,2 @@
+class CorruptRecordingsError(Exception):
+    pass
