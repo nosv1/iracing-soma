@@ -16,3 +16,9 @@ bench/runs/
 
 # Editable-install metadata (pip install -e .)
 *.egg-info/
+
+# Editor config
+.vscode/
+
+# Telemetry recordings (main.py -r)
+/recordings/
