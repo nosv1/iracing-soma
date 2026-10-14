@@ -10,3 +10,4 @@ class Loader:
     def __init__(self, recordings_path: Path) -> None:
         self.recordings_path = recordings_path
         self.f = open(recordings_path, "r")
+        self.f.close()
