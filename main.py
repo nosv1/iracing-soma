@@ -93,8 +93,7 @@ def main(record_path: Path | None, recordings_path: Path | None) -> None:
                     ir.ir.freeze_var_buffer_latest()
 
                     if recorder is not None:
-                        recorder.record_iRacing_session_yaml(ir)
-                        recorder.queue_iRacing_frame(ir)
+                        recorder.handle_new_tick(ir)
 
                 # session = Session.from_dict(ir.ir)
 
