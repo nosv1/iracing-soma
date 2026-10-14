@@ -149,21 +149,41 @@ file. Open, his call:
   cooldowns on callouts (`CalloutManager`).
 - Open: the license (MIT vs GPL), his call, no rush.
 
+### 2026-10-14 (evening): connection, loader done, tests
+
+- **Connection:** `connect()` retries `startup()` with backoff capped at 30 s (he flipped
+  max/min once); main loop does `disconnect()` → `connect()` on drop, so pyirsdk's cached var
+  headers reset. `startup()` = one attempt (HTTP sim-status + 32 ms data-valid wait), not a
+  background process. Known: STOP can't fire while `connect()` blocks (Ctrl+C still flushes).
+- **Recorder:** per-run timestamped folder, YAML history `yaml_history/<tick>-<ts>.yaml` +
+  `index.json`. **Requirement (his): every YAML tick is a recorded frame tick**; YAML is checked
+  only on ticks a frame is recorded (`handle_new_tick`). First recording's `index.json` rewritten
+  to his flat `{tick: file}` (string keys); `recorder.py` should write the same.
+- **YAML is cp1252**: raw `yaml.safe_load` fails on all 172 files (`Å` byte), `.decode("cp1252")`
+  first parses all. pyirsdk `_parse_yaml` (irsdk.py:647) does more sanitizing (quotes in names,
+  leading commas); look there if a lobby breaks parsing.
+- **Loader done:** `snapshots()` generator, exact-tick YAML pairing, raises
+  `CorruptRecordingsError` if index ticks are left unmatched; `Snapshot.__getitem__` frame then
+  YAML. Real recording: 15,674 snapshots (his run; temp count code since removed).
+- **Tests:** pytest, fixture recordings in `tests/recordings/` (`valid`, `yaml_tick_without_frame`;
+  cp1252 name; YAML switch at 630). 4 green. Taught: generator body runs only when consumed;
+  asserts behind `if` pass vacuously → consume in a fixture, flat asserts.
+- **mypy clean** on `main.py src tests` (stubs for yaml, `irsdk`/`sounddevice` ignored). It found
+  4 real bugs. `possibly-undefined` is opt-in; enabling it would have caught the replay `ir` crash.
+- Ideas go in [backlog.md](backlog.md) (his, raw, unprioritized).
+
 ## Next
 
-0. His, recorder review (left after the fixes):
-   - [bug] `connect()` ignores `startup()`'s return: a first run crashed on `freeze` with
-     `_header` None while iRacing was loading. Leaving a session mid-run will do the same.
-   - [design] `exist_ok=False` + fixed names (`frames.txt`, `session.yaml`) = one run per
-     folder and a crashed run blocks the next. Per-run subfolder (timestamp) fixes both.
-   - [design] Only the last `session.yaml` survives; keep each version (numbered by
-     `SessionInfoUpdate`), and write `session_info_update` into each frame.
-   - [nit] gzip (`gzip.open(..., "at")`); `disconnect()` logs "Connected"; `Driver.from_irsdk`
-     builds `Driver(...)` not `cls(...)`; `Session.session_time` is a float.
-1. His: loader / replay source (above), then main loop that takes live or replay.
-2. His: explore the recording. Open: `CarIdxPosition` on the grid before green, what
+0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
+1. His: **live/replay split in `main`.** Replay currently crashes (`ir` unbound in the loop).
+   Direction discussed: both sources yield `Snapshot` (live as a generator owning connect,
+   freeze, new-tick), `main` picks one then `for snapshot in source`. Open: recorder fed by main
+   vs inside the source; STOP during reconnect. Consider `possibly-undefined` in mypy config.
+2. His, leftovers: recorder `index.json` format → `{tick: file}`; gzip; recorder tests (stub in
+   `tests/test_recorder.py`: every YAML tick is a frame tick); loader test nits (ticks as ordered
+   list to catch dupes, fixture hint `dict[int, ...]`); `ir.disconnect()` on exit.
+3. His: explore the recording. Open: `CarIdxPosition` on the grid before green, what
    `CarIdxF2Time` holds, YAML `ClassPosition` base.
-3. His: tests for the recorder (round-trip) and loader.
 4. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
    Keep it pure (frames in, event out) so it runs against recordings.
