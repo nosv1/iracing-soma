@@ -1,5 +1,7 @@
 import argparse
+import logging
 import sys
+import time
 from pathlib import Path
 
 import sounddevice
@@ -8,8 +10,12 @@ from piper import PiperVoice
 from soma.car import Car
 from soma.iracing import iRacing
 from soma.irsdk_vars import PLAYER_CAR_IDX
+from soma.loader import Loader
 from soma.recorder import Recorder
 from soma.session import Session
+
+logger = logging.getLogger(__file__)
+logging.basicConfig(level=logging.INFO)
 
 
 def cli() -> None:
@@ -24,11 +30,20 @@ def cli() -> None:
         metavar="DIR",
         help="record iRacing data",
     )
+    parser.add_argument(
+        "-l",
+        "--load",
+        nargs="?",
+        default=None,
+        type=Path,
+        metavar="DIR",
+        help="directory holding the recording to load (probably timestamped)",
+    )
     args = parser.parse_args()
-    main(args.record)
+    main(args.record, args.load)
 
 
-def main(record_path: Path | None) -> None:
+def main(record_path: Path | None, recordings_path: Path | None) -> None:
     ir = iRacing()
     ir.connect()
 
@@ -37,27 +52,55 @@ def main(record_path: Path | None) -> None:
     voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
     voice = PiperVoice.load(voice_path)
 
-    session: Session | None = None
     recorder: Recorder | None = None
     if record_path is not None:
         # starts recorder thread
-        recorder = Recorder(record_path)
+        recorder = Recorder(output_dir=record_path, recorded_fps=10, iracing_fps=60)
+
+    loader: Loader | None = None
+    if recordings_path is not None:
+        loader = Loader(recordings_path=recordings_path)
+
+    # creating this file stops the loop cleanly (finally still flushes the recorder)
+    stop_file = (record_path or Path.cwd()) / "STOP"
+    stop_file.unlink(
+        missing_ok=True
+    )  # a leftover from last run would stop us immediately
+    next_stop_check = 0.0
+    logger.info(f"create {stop_file} to stop")
+
+    session: Session | None = None
 
     try:
         while True:
-            if recorder is not None:
-                recorder.record_iRacing_session_yaml(ir)
-                recorder.queue_iRacing_frame(ir)
+            # check about once a second; the loop spins far faster than that
+            now = time.monotonic()
+            if now >= next_stop_check:
+                if stop_file.exists():
+                    logger.info("stop file found, stopping")
+                    break
+                next_stop_check = now + 1.0
 
-            session = Session.from_irsdk(ir.ir)
+            # freeze data stream
+            if loader is None:
+                ir.ir.freeze_var_buffer_latest()
 
-            if not ir.state.is_ir_connected:
-                break
+                if recorder is not None:
+                    recorder.record_iRacing_session_yaml(ir)
+                    recorder.queue_iRacing_frame(ir)
+
+            session = Session.from_dict(ir.ir)
+
+            # unfreeze data stream
+            if loader is None:
+                ir.ir.unfreeze_var_buffer_latest()
+                if not ir.state.is_ir_connected:
+                    break
 
     finally:
         if recorder is not None:
             recorder.q.put(recorder.STOP)
-            recorder.t.join()
+            recorder._t.join()
 
     # chunk_array = voice.synthesize(f"player car index is {player_car.idx}")
 
