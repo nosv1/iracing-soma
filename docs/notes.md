@@ -74,17 +74,41 @@ expected laps left; expected laps of fuel; am I being caught. Notes from discuss
 - "Laps left" vs "fuel laps" is a real ambiguity → candidate for a combined fuel-vs-race
   function: "12 to go, fuel for 11. Save 10%, or box lap 8." Templates suffice.
 
+### 2026-10-13 (evening): recorder first, started
+
+Reordered: the recorder jumped to the front; everything else (caught call, projections, router
+eval) needs real race data to test against.
+
+- `check_iracing()` (tutorial copy) axed; `iRacing` now has bare `connect()` / `disconnect()`.
+- [docs/irsdk/irsdk_vars.md](irsdk/irsdk_vars.md) gained a session-info (YAML) section, built
+  from a live dump, plus observed facts: `CarIdx*` arrays are **72** wide, pace car idx 64;
+  `CarIdxPosition` 0 = empty slot / unscored, -1 = slots 64–71; YAML `ClassPosition` looks
+  0-based (verify multiclass). `ir[key]` falls back from telemetry vars to YAML sections.
+- His recorder (uncommitted, WIP): `main.py -r [DIR]` (default `./recordings`, gitignored),
+  `Recorder` = queue + one non-daemon writer thread + sentinel, stopped in `finally`. Per tick it
+  freezes and queues `{name: ir[name] for all vars}`; saves raw YAML bytes on
+  `session_info_update` change. Also WIP: `Session`, `Driver` (`@classmethod` constructors).
+- He thinks it records; not yet verified or tested.
+
 ## Next
 
-0. His, review: `check_iracing()` ends with an unconditional `logger.error("...failed to
-   connect")`, so it logs failure even on success (fix now). Still open from 10-11: `main.py`
-   reaches into `ir.ir[...]`; failed connect still gives `Car(idx=None)`; keep caught-call logic
-   pure (snapshots in, result out) so it's testable against replays.
-1. His: caught-call detection (line crossing detected from `CarIdxLapDistPct` wrap; see
+0. His, review of the WIP recorder before trusting a recording:
+   - [bug] Main loop has no pacing: it spins, queueing the same tick many times (~300 vars each).
+     File size and queue memory grow fast. Wait for a new tick (`SessionTick` changed) or sleep.
+   - [bug] `while ir.state.is_ir_connected` never goes false: `connect()` sets True without
+     checking `startup()`'s return, and nothing rechecks `ir.is_connected`. Only Ctrl+C exits.
+   - [design] Frames written as Python `repr` (`f"{item}"`); JSON lines would be loadable by
+     anything. Decide the format before recording much.
+   - [bug] `Driver.drivers_from_irsdk`: needs `(cls, ir)`; YAML nesting is
+     `ir['DriverInfo']['Drivers']`, code has it inside out.
+   - [nit] `disconnect()` logs "Connected"; `Session.session_time` is a float.
+1. His: tests for the recorder (round-trip: record → load → same values) and a replay source
+   with the same interface as the live wrapper.
+2. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
-2. His: function signatures for the question list above, then 5–8 radio-style variants per
+   Keep it pure (frames in, event out) so it runs against recordings.
+3. His: function signatures for the question list above, then 5–8 radio-style variants per
    question as `question → expected call` (incl. ambiguous ones → `clarify`). His spec.
-3. Mine once (2) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
+4. Mine once (3) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
    correct `clarify` separately.
-4. His: first projection (laps to catch), numbers/facts check.
-5. Telemetry recorder + replay for desk testing.
+5. His: first projection (laps to catch), numbers/facts check.
