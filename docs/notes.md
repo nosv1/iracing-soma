@@ -136,6 +136,19 @@ file. Open, his call:
   Option B: pass frame and YAML separately; explicit, more signature churn.
 - Live mode must build the same frame; only when `SessionTick` moves, as the recorder does.
 
+### 2026-10-14 (evening): prior art, open source
+
+- He's considering making Soma open source. Googling turned up
+  [OblivionsPeak/ai-race-engineer](https://github.com/OblivionsPeak/ai-race-engineer): one
+  6.5K-line file, 61 of 66 commits Claude co-authored, cloud LLM through the author's backend
+  (login, 50 queries/day), no license, no record/replay. Its fix log ("false meatball/engine
+  warning on session start", "CarLeftRight shifted by one") shows bugs a replay would catch.
+  Worth borrowing as ideas, not code: its callout list (meatball `SessionFlags & 0x40000`, new
+  `EngineWarnings` bits, `PitRepairLeft` rising, sector deltas from
+  `LapDeltaToSessionBestLap`), absorbing flags present on connect / first on-track, and per-key
+  cooldowns on callouts (`CalloutManager`).
+- Open: the license (MIT vs GPL), his call, no rush.
+
 ## Next
 
 0. His, recorder review (left after the fixes):
