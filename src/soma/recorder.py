@@ -25,7 +25,7 @@ class Recorder:
 
         self.q: Queue[str] = Queue()  # iRacing frames, json dumps
         # append this to the queue to stop the thread
-        self.STOP = object()
+        self.STOP = "STOP"
 
         self._output_dir.mkdir(parents=True, exist_ok=False)
         self._yaml_history_dir.mkdir(parents=True, exist_ok=False)
@@ -94,9 +94,9 @@ class Recorder:
         return True
 
     def handle_new_tick(self, ir: iRacing):
-        queued = self.queue_iRacing_frame()
+        queued = self.queue_iRacing_frame(ir)
         if queued:
-            self.record_iRacing_session_yaml()
+            self.record_iRacing_session_yaml(ir)
 
     def writer(self):
         with open(self._output_dir / "frames.txt", "a") as f:
