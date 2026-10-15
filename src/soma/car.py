@@ -16,8 +16,8 @@ class Car:
         return Car(idx=idx, position=position)
 
     @classmethod
-    def cars_from_frame(cls, ir: IRSDK | Snapshot) -> list[Car]:
-        cars: list[Car] = []
+    def cars_from_frame(cls, ir: IRSDK | Snapshot) -> dict[int, Car]:
+        cars: dict[int, Car] = {}
         for i, position in enumerate(ir[CAR_IDX_POSITION]):
-            cars.append(cls.from_frame(i, position))
+            cars[i] = cls.from_frame(i, position)
         return cars

@@ -16,8 +16,9 @@ class Driver:
         return Driver(car_idx=driver[CAR_IDX], name=driver[USER_NAME])
 
     @classmethod
-    def drivers_from_frame(cls, ir: IRSDK | Snapshot) -> list[Driver]:
-        drivers: list[Driver] = []
-        for driver in ir[DRIVER_INFO][DRIVERS]:
-            drivers.append(cls.from_frame(driver))
+    def drivers_from_frame(cls, ir: IRSDK | Snapshot) -> dict[int, Driver]:
+        drivers: dict[int, Driver] = {}
+        for driver_dict in ir[DRIVER_INFO][DRIVERS]:
+            driver = cls.from_frame(driver_dict)
+            drivers[driver.car_idx] = driver
         return drivers
