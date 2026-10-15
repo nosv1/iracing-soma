@@ -3,23 +3,12 @@ from pathlib import Path
 import pytest
 
 from soma.exceptions import CorruptRecordingsError
-from soma.irsdk_vars import DRIVER_INFO, DRIVERS, SESSION_TICK, USER_NAME
+from soma.irsdk_vars import DRIVER_INFO, DRIVERS, USER_NAME
 from soma.loader import Loader, Snapshot
-
-RECORDINGS = Path(__file__).parent / "recordings"
-
-
-@pytest.fixture
-def valid_loader() -> Loader:
-    return Loader(RECORDINGS / "valid")
-
-
-@pytest.fixture
-def valid_snapshots_dict(valid_loader: Loader) -> dict[int, Snapshot]:
-    return {s[SESSION_TICK]: s for s in valid_loader.snapshots()}
 
 
 def test_yaml_decoded_correctly(valid_snapshots_dict: dict[int, Snapshot]):
+    """valid_snapshots_dict: {tick_number: Snapshot, ...}"""
     # confirm �nders Nilsson is loaded to Ånders Nilsson
     snapshot = valid_snapshots_dict[600]
     assert snapshot[DRIVER_INFO][DRIVERS][1][USER_NAME] == "Ånders Nilsson"
@@ -38,7 +27,7 @@ def test_yaml_switched_over_correctly(valid_snapshots_dict: dict[int, Snapshot])
     assert len(new_snapshot[DRIVER_INFO][DRIVERS]) == 3
 
 
-def test_tick_without_frame() -> None:
+def test_tick_without_frame(recordings_path: Path) -> None:
     with pytest.raises(CorruptRecordingsError):
-        loader = Loader(RECORDINGS / "yaml_tick_without_frame")
+        loader = Loader(recordings_path / "yaml_tick_without_frame")
         list(loader.snapshots())

@@ -1,16 +1,12 @@
 import argparse
 import logging
-import sys
 import time
 from pathlib import Path
 
-import sounddevice
 from irsdk import IRSDK
 from piper import PiperVoice
 
-from soma.car import Car
 from soma.iracing import iRacing
-from soma.irsdk_vars import PLAYER_CAR_IDX
 from soma.loader import Loader, Snapshot
 from soma.recorder import Recorder
 from soma.session import Session
