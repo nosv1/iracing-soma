@@ -172,13 +172,24 @@ file. Open, his call:
   4 real bugs. `possibly-undefined` is opt-in; enabling it would have caught the replay `ir` crash.
 - Ideas go in [backlog.md](backlog.md) (his, raw, unprioritized).
 
+### 2026-10-15: live/replay split, shared fixtures
+
+- His: `main` split into two loops (record vs live stream, `13d1efc`); cars/drivers now dicts
+  keyed by car idx (`1bd03bd`). Not checked by me whether replay runs end to end.
+- Fixtures moved to `tests/conftest.py` (`a9540d0`): `recordings_path`, `valid_loader`,
+  `valid_snapshots_dict`, `valid_driver_dict`. Taught: don't import fixtures from test modules
+  (dependency chain isn't visible, couples files); conftest is auto-discovered.
+- State at sign-off: 5 tests green, `uv run mypy main.py src tests` clean, ruff 6 left
+  (E501 ×2 `loader.py:59-60`, N802 ×2 `recorder.py` `iRacing` names, 2 unsafe-fix). Run checks
+  via `uv run`; bare `python -m mypy` hit another env and gave false `import-untyped`.
+
 ## Next
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
-1. His: **live/replay split in `main`.** Replay currently crashes (`ir` unbound in the loop).
-   Direction discussed: both sources yield `Snapshot` (live as a generator owning connect,
-   freeze, new-tick), `main` picks one then `for snapshot in source`. Open: recorder fed by main
-   vs inside the source; STOP during reconnect. Consider `possibly-undefined` in mypy config.
+1. His: **live/replay split in `main`**: first pass committed 10-15 (two loops). Verify replay
+   runs on the real recording. Open: whether both sources should yield `Snapshot` so `main` has
+   one `for snapshot in source` loop; STOP during reconnect. Consider `possibly-undefined` in
+   mypy config. Clear the remaining ruff errors.
 2. His, leftovers: recorder `index.json` format → `{tick: file}`; gzip; recorder tests (stub in
    `tests/test_recorder.py`: every YAML tick is a frame tick); loader test nits (ticks as ordered
    list to catch dupes, fixture hint `dict[int, ...]`); `ir.disconnect()` on exit.
