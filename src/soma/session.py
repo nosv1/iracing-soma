@@ -5,6 +5,7 @@ from irsdk import IRSDK
 from soma.car import Car
 from soma.driver import Driver
 from soma.irsdk_vars import PLAYER_CAR_IDX, SESSION_TIME
+from soma.loader import Snapshot
 
 
 @dataclass
@@ -15,10 +16,10 @@ class Session:
     drivers: list[Driver] = field(default_factory=list)
 
     @classmethod
-    def from_irsdk(cls, ir: IRSDK) -> Session:
+    def from_frame(cls, frame: IRSDK | Snapshot) -> Session:
         return Session(
-            session_time=ir[SESSION_TIME],
-            player_car_idx=ir[PLAYER_CAR_IDX],
-            cars=Car.cars_from_irsdk(ir),
-            drivers=Driver.drivers_from_irsdk(ir),
+            session_time=frame[SESSION_TIME],
+            player_car_idx=frame[PLAYER_CAR_IDX],
+            cars=Car.cars_from_frame(frame),
+            drivers=Driver.drivers_from_frame(frame),
         )

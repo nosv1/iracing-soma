@@ -24,14 +24,14 @@ class Snapshot:
 
 
 class Loader:
-    def __init__(self, recordings_path: Path) -> None:
-        self.recordings_path = recordings_path
-        self.yaml_dir = recordings_path / "yaml_history"
+    def __init__(self, recording_path: Path) -> None:
+        self.recording_path = recording_path
+        self.yaml_dir = recording_path / "yaml_history"
         with open(self.yaml_dir / "index.json") as f:
             self._yaml_history_index: dict[str, str] = json.load(f)
 
     def lines(self) -> Iterator[str]:
-        with open(self.recordings_path / "frames.txt") as f:
+        with open(self.recording_path / "frames.txt") as f:
             for line in f:
                 yield line.strip("\n")
 

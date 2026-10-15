@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from irsdk import IRSDK
 
 from soma.irsdk_vars import CAR_IDX, DRIVER_INFO, DRIVERS, USER_NAME
+from soma.loader import Snapshot
 
 
 @dataclass
@@ -15,7 +16,7 @@ class Driver:
         return Driver(car_idx=driver[CAR_IDX], name=driver[USER_NAME])
 
     @classmethod
-    def drivers_from_irsdk(cls, ir: IRSDK) -> list[Driver]:
+    def drivers_from_frame(cls, ir: IRSDK | Snapshot) -> list[Driver]:
         drivers: list[Driver] = []
         for driver in ir[DRIVER_INFO][DRIVERS]:
             drivers.append(cls.from_irsdk(driver))
