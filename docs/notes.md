@@ -185,21 +185,27 @@ file. Open, his call:
 
 ## Next
 
+**Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
+feature (my ordering). Caught call goes first, against the replay loop as it stands.
+
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
-1. His: **live/replay split in `main`**: first pass committed 10-15 (two loops). Verify replay
-   runs on the real recording. Open: whether both sources should yield `Snapshot` so `main` has
-   one `for snapshot in source` loop; STOP during reconnect. Consider `possibly-undefined` in
-   mypy config. Clear the remaining ruff errors.
-2. His, leftovers: recorder `index.json` format → `{tick: file}`; gzip; recorder tests (stub in
-   `tests/test_recorder.py`: every YAML tick is a frame tick); loader test nits (ticks as ordered
-   list to catch dupes, fixture hint `dict[int, ...]`); `ir.disconnect()` on exit.
-3. His: explore the recording. Open: `CarIdxPosition` on the grid before green, what
-   `CarIdxF2Time` holds, YAML `ClassPosition` base.
-4. His: caught-call detection (line crossing from `CarIdxLapDistPct` wrap; see
-   `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo`). Template voice.
-   Keep it pure (frames in, event out) so it runs against recordings.
-5. His: function signatures for the question list above, then 5–8 radio-style variants per
+1. His: **caught-call detection**, against the loader/replay loop as is. Start with his own
+   approaches (two or three) before any known technique. Keep it pure (snapshots in, event out)
+   so it runs against recordings. Template voice. Reference once he has his own:
+   `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo` (line crossing
+   from `CarIdxLapDistPct` wrap).
+2. His: explore the recording as (1) needs it. Open: `CarIdxPosition` on the grid before green,
+   what `CarIdxF2Time` holds, YAML `ClassPosition` base.
+3. **Parked until the caught call works** (not blocking it):
+   - Live/replay unification: both sources yield `Snapshot`, one `for snapshot in source` loop;
+     STOP during reconnect. Matters when running live; shape it from what the detector needs.
+   - Verify replay end to end on the real recording (do this when (1) first runs).
+   - Ruff leftovers, `possibly-undefined` in mypy config.
+   - Recorder `index.json` → `{tick: file}`; gzip; recorder tests (stub in
+     `tests/test_recorder.py`: every YAML tick is a frame tick); loader test nits (ticks as
+     ordered list to catch dupes, fixture hint `dict[int, ...]`); `ir.disconnect()` on exit.
+4. His: function signatures for the question list above, then 5–8 radio-style variants per
    question as `question → expected call` (incl. ambiguous ones → `clarify`). His spec.
-6. Mine once (5) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
+5. Mine once (4) exists: router eval harness, 3B vs 8B; score correct call, correct `none`,
    correct `clarify` separately.
-7. His: first projection (laps to catch), numbers/facts check.
+6. His: first projection (laps to catch), numbers/facts check.
