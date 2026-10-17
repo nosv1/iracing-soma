@@ -8,6 +8,8 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
 - **Which split am I in**: answer on request.
 - **Race-distance milestones**: call out when laps left halves: halfway, quarter to go, and so
   on.
+  - **Trap, timed races**: laps left is an estimate from the leader's pace, so it can move. A
+    milestone could fire twice or get skipped; needs a rule.
 - **Repair time**: how long the repair will take, before committing to the pit. Already on the
   question list in [notes.md](notes.md) with the vars to check (`PitRepairLeft`,
   `PitOptRepairLeft`, fast repair).
