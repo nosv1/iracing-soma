@@ -13,6 +13,10 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
 - **Repair time**: how long the repair will take, before committing to the pit. Already on the
   question list in [notes.md](notes.md) with the vars to check (`PitRepairLeft`,
   `PitOptRepairLeft`, fast repair).
+- **Oil pressure warning**: speak it when the warning light comes on. `EngineWarnings & 0x0004`
+  (pyirsdk `EngineWarnings.oil_pressure_warning`); `OilPress` (bar) is there for the trend.
+  Needs a "what to do" (short shift? box?), and a check that it doesn't fire falsely on session
+  start (OblivionsPeak hit that with its engine warnings).
 - **Start reaction time**: green flag → my reaction, for standing and rolling starts.
   - Green: the `SessionFlags` green bit, or `SessionState` changing to racing (check which is
     first). Reaction: `Throttle` onset is probably cleaner than a jump in `Speed`, which lags.
