@@ -183,15 +183,55 @@ file. Open, his call:
   (E501 ×2 `loader.py:59-60`, N802 ×2 `recorder.py` `iRacing` names, 2 unsafe-fix). Run checks
   via `uv run`; bare `python -m mypy` hit another env and gave false `import-untyped`.
 
+### 2026-10-16: second recording, caught call started
+
+- **Second recording** `recordings/20261016-164405/` (gitignored): 3 sessions, race green
+  16:59, checkered 17:14 (~15 min). 17,466 frames, all valid JSON, 218 YAML, 375 MB. Ran via a
+  scratchpad watcher (spoken status, northern male voice); STOP file shut it down clean (exit 0).
+  Live `Session.from_frame` survived 30 min without throwing (says nothing about its values).
+- **Line-crossing math, his,** worked on paper first:
+  `t_cross = t1 − p1 · (t1 − t0) / (p1 + 1 − p0)` (linear interpolation across the wrap; same
+  answer from either side). He tried to skip it ("frames have `SessionTime`"); worked through
+  why not: frame time is 0–100 ms late per car at 10 Hz, so on the fixture the un-interpolated
+  delta gap is 0.100 vs a true 0.154 (35% off). Live 60 Hz is ≤17 ms late, but one code path.
+- **`CarIdxLastLapTime` is official per-car timing** (seen populated for the whole field, `-1`
+  for some laps, e.g. car 4 with a best but no last; cause unverified). Delta gap over a lap =
+  difference of the two lap times, no interpolation needed. Absolute gap (laps-to-catch) still
+  needs interpolated crossing times. Use lap times as the check on his crossings in real data.
+- **Fixture `tests/recordings/crossings/`** (mine, uncommitted): 2 cars at constant speed,
+  4 s laps, 50 frames. Car 0 crosses 0.388 / 4.388, car 1 0.769231 / 4.615385; gap 0.381231 →
+  0.227385, **delta 0.153846**; `CarIdxLastLapTime` 4.0 / 3.846154 from the frame after each
+  car's 2nd crossing, `-1` before. Generator lives in the session scratchpad only (will be lost;
+  regenerate or move into `tests/` if the fixture needs to change).
+- Added to `irsdk_vars.py`: `CAR_IDX_LAP_COMPLETED`, `CAR_IDX_LAP_DIST_PCT`,
+  `CAR_IDX_ON_PIT_ROAD`, `CAR_IDX_TRACK_SURFACE`, `CAR_IDX_LAST_LAP_TIME`.
+- Taught: `from_<source>` alternative constructors are idiomatic (keep plain `__init__` for
+  tests); redundancy is the smell (`from_car_idx_frame(car_idx, frame)`, `Lap.create_lap`).
+  `typing.Protocol` for `IRSDK | Snapshot`; he moved `Snapshot` to `snapshot.py`. Ticks = frame
+  ID (int, unique, continuous); `SessionTime` = the math (float, resets per session).
+- **His WIP (uncommitted), state at sign-off:** `Lap`, `Car.get_delta_gap_after_lap`,
+  `Session.update_session`, tick dedupe in `handle_frame`. Untested (`test_crossings.py` is a
+  `pass`). mypy 4 errors (`Lap.from_frame` missing `@classmethod`, `field(default=list)`,
+  `update_car` missing `frame`, `Lap | None` append). Reviewed, fix now: laps don't survive
+  frames (new `Car` each frame), crossing time not interpolated, guard on `laps_completed`
+  not `len(laps)`. Noted: `laps[-2]` pairs by list position (mismatch between the two cars'
+  crossings, lapped cars), any backwards pct counts as a lap (garage `-1`, tows), sign
+  convention (+0.154 for self=0, other=1) undocumented.
+- **His redesign, landed at sign-off:** one persistent `Car` per idx owning its laps, updated in
+  place; previous frame kept as cheap scalars (`prev_lap_dist`, `prev_session_time`), no
+  `old_car` chain.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
 feature (my ordering). Caught call goes first, against the replay loop as it stands.
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
-1. His: **caught-call detection**, against the loader/replay loop as is. Start with his own
-   approaches (two or three) before any known technique. Keep it pure (snapshots in, event out)
-   so it runs against recordings. Template voice. Reference once he has his own:
+1. His: **caught-call detection**, against the loader/replay loop as is. **Now (10-16):** the
+   persistent-`Car` redesign, then a test that runs `crossings` through the update loop and
+   asserts delta ≈ 0.153846 (lap-time version first, interpolated crossings next), then a
+   template voice line. Mini sectors after the line works. Keep it pure (snapshots in, event
+   out) so it runs against recordings. Reference once he has his own:
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo` (line crossing
    from `CarIdxLapDistPct` wrap).
 2. His: explore the recording as (1) needs it. Open: `CarIdxPosition` on the grid before green,
