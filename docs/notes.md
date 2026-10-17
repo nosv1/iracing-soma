@@ -221,6 +221,26 @@ file. Open, his call:
   place; previous frame kept as cheap scalars (`prev_lap_dist`, `prev_session_time`), no
   `old_car` chain.
 
+### 2026-10-17: backlog, oval priorities
+
+- Backlog grew (all in [backlog.md](backlog.md)): laps-left milestones (timed-race trap noted),
+  repair time, start reaction time, oil pressure warning, water temp in the draft. Pyirsdk
+  `EngineWarnings` bits checked: `0x0001` water temp, `0x0004` oil pressure, `0x0080` / `0x0100`
+  mandatory / optional repairs needed (possible on-track damage signal).
+- Both recordings: repair vars present, always 0.0 (no damage taken). Still unverified whether
+  they populate before the pit box.
+- **Priority signal (his):** he races ovals a fair amount; caught call matters less there.
+  Repair time + spotter would let him use Soma in oval races sooner. He runs DRE now and wants
+  to switch: plan is to note which DRE calls he'd miss and build those first.
+- **Open, his call (parked, he was tired):** reorder Next around that. My suggestion: crossing
+  test green → damage recording → live loop + repair-time call (first in-race feature, forces
+  the live + voice pipeline) → spotter (latency; pre-render clips; ask what it beats iRacing's
+  built-in on) → caught call for road. And a `docs/dre-calls.md` list (call, trigger, oval/road,
+  would-miss), offered, not made.
+- His plan for next session: test the function from 10-16 (`get_delta_gap_after_lap`) before
+  the persistent-`Car` refactor. Low-energy path: build `Car`s with hand-made `laps` directly
+  (plain `__init__`), no update loop needed.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
