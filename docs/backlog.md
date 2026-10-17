@@ -12,11 +12,16 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
     milestone could fire twice or get skipped; needs a rule.
 - **Repair time**: how long the repair will take, before committing to the pit. Already on the
   question list in [notes.md](notes.md) with the vars to check (`PitRepairLeft`,
-  `PitOptRepairLeft`, fast repair).
+  `PitOptRepairLeft`, fast repair). `EngineWarnings` also has repairs-needed bits (`0x0080`
+  mandatory, `0x0100` optional): may say "damaged" on track even if the times don't fill in yet.
 - **Oil pressure warning**: speak it when the warning light comes on. `EngineWarnings & 0x0004`
   (pyirsdk `EngineWarnings.oil_pressure_warning`); `OilPress` (bar) is there for the trend.
   Needs a "what to do" (short shift? box?), and a check that it doesn't fire falsely on session
   start (OblivionsPeak hit that with its engine warnings).
+- **Water temp in the draft (ovals)**: bump drafting blocks the radiator, temp climbs fast. Call
+  it from the rate of rise, before the light: "temps climbing, get some air", maybe with time to
+  the warning at the current rate. `WaterTemp` (C); light is `EngineWarnings & 0x0001`. Unknown:
+  the threshold per car, and how fast it cools in clean air.
 - **Start reaction time**: green flag → my reaction, for standing and rolling starts.
   - Green: the `SessionFlags` green bit, or `SessionState` changing to racing (check which is
     first). Reaction: `Throttle` onset is probably cleaner than a jump in `Speed`, which lags.
