@@ -12,6 +12,12 @@ from soma.loader import Snapshot
 
 
 @dataclass
+class CarDeltaGap:
+    car_idx: int
+    delta_gap: float
+
+
+@dataclass
 class Car:
     session_time: float
     idx: int
@@ -71,6 +77,19 @@ class Car:
         )
 
         return gap_after - gap_before
+
+    def get_delta_gaps_ahead(
+        self, cars_dict: dict[int, Car], positions_idx_map: dict[int, int]
+    ):
+        delta_gaps = []
+        for pos in range(1, self.position):
+            car_ahead = cars_dict[positions_idx_map[pos]]
+            delta_gap = self.get_delta_gap_after_lap(car_ahead)
+            if delta_gap is None:
+                continue
+            delta_gaps.append(CarDeltaGap(car_idx=car_ahead.idx, delta_gap=delta_gap))
+        delta_gaps.sort(key=lambda dg: dg.delta_gap)
+        return delta_gaps
 
     def did_start_new_lap(self, old_car: Car) -> bool:
         return (
