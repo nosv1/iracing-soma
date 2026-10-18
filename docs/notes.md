@@ -267,6 +267,8 @@ file. Open, his call:
   leading car" later. His docstring still says "+ = further apart", false when self leads
   (his own test: +0.154 while closing). Noted, not fixed.
 - Open, fix now (before voice): 0 laps → index −1 → `laps[-2]` `IndexError`; guard misses it.
+  Edge tests (0/0, 1/1, unequal counts; a `car_with_laps(idx, timestamps)` helper makes each one
+  line) parked in a TODO by him; the guard fix itself is not optional before voice.
 - His loop is copied 3× (live, replay, test fixture); he dislikes it. Root is the parked
   live/replay unification (live as a generator yielding snapshots). He can't picture it yet;
   parked, not a priority.
