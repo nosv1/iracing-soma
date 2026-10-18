@@ -40,8 +40,15 @@ class Session:
     def handle_frame(self, frame: Snapshot, new_session: Session):
         self.update_session(new_session)
 
+        # add any new cars to existing dict
         for idx, new_car in new_session.cars.items():
             if idx not in self.cars:
                 self.cars[idx] = new_car
+
+        # handle all known cars
+        for idx, car in self.cars.items():
+            if idx in new_session.cars:
+                car.handle_frame(frame, new_session.cars[idx])
             else:
-                self.cars[idx].handle_frame(frame, new_car)
+                # TODO NEED TO HANDLE CARS THAT HAVE DIPPED
+                pass
