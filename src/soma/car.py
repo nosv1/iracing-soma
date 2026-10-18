@@ -72,7 +72,7 @@ class Car:
         """
         lap_idx_to_compare = min(len(self.laps), len(other.laps)) - 1
 
-        if lap_idx_to_compare == 0:
+        if lap_idx_to_compare == -1:
             return None
 
         gap_before = (
