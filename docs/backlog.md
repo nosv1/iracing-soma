@@ -45,6 +45,13 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
     Splits above would be the first topic.
   - Fits the router: "keep me posted on lap times" → a function call with topic + cadence.
   - Ties to per-key cooldowns on callouts (OblivionsPeak's `CalloutManager`, in notes.md).
+- **Radio effects**: make Soma sound like team radio, not a clean TTS voice.
+  - Usual recipe: band-pass (roughly 300–3000 Hz), a little distortion/compression, light
+    static, a click or squelch at the start and end of each line.
+  - Lives in `Speaker`, between `synthesize` and `play`: Piper chunks are NumPy arrays, so the
+    filter is array in, array out (SciPy has the filters). Pre-render the click once.
+  - Watch for added latency (spotter calls later), and readability: radio filtering makes
+    speech harder to understand, so keep it mild or make it switchable.
 - **Config file**: settings out of `main.py`, starting with recorded fps.
 - **Ruff N802 on `iRacing` names** (`recorder.py`): keep the casing and silence ruff. Either a
   per-line `# noqa: N802`, or once in `pyproject.toml` under `[tool.ruff.lint.pep8-naming]`.
