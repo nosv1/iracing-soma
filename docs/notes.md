@@ -240,6 +240,8 @@ file. Open, his call:
 - His plan for next session: test the function from 10-16 (`get_delta_gap_after_lap`) before
   the persistent-`Car` refactor. Low-energy path: build `Car`s with hand-made `laps` directly
   (plain `__init__`), no update loop needed.
+- **Reminder (his ask):** when he's tired or hits a checkpoint, remind him to consider starting
+  [otto](https://github.com/nosv1/otto-the-robot).
 
 ## Next
 
