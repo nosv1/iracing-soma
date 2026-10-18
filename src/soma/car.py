@@ -31,6 +31,10 @@ class Car:
     # cleared then appended to in handle frame
     events: list[Event] = field(default_factory=list)
 
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, Car)
+        return self.idx == other.idx
+
     @classmethod
     def from_frame(cls, frame: Snapshot, idx: int, position: int) -> Car:
         return Car(
@@ -56,16 +60,20 @@ class Car:
         self.lap_dist = new_car.lap_dist
         self.event_laps_completed = new_car.event_laps_completed
 
+    def get_last_shared_completed_lap(self, other: Car) -> int:
+        return min(len(self.laps), len(other.laps))
+
     def get_delta_gap_after_lap(self, other: Car) -> float | None:
-        """+ delta gap -> gap grew,  - delta gap -> gap decreased
+        """\\+ delta gap -> gap grew,  \\- delta gap -> gap decreased
         this is relative to self, gap growing could be good or bad depending if
         current interval is - or + (leading or following),
         simply if this returns a positive number, the cars got further apart
         """
-        lap_idx_to_compare = min(len(self.laps), len(other.laps)) - 1
-
-        if lap_idx_to_compare == -1:
+        lap_to_compare = self.get_last_shared_completed_lap(other)
+        if lap_to_compare <= 1:
             return None
+
+        lap_idx_to_compare = lap_to_compare - 1
 
         gap_before = (
             self.laps[lap_idx_to_compare - 1].estimated_timestamp
@@ -80,16 +88,31 @@ class Car:
 
     def get_delta_gaps_ahead(
         self, cars_dict: dict[int, Car], positions_idx_map: dict[int, int]
-    ):
-        delta_gaps = []
+    ) -> list[CarDeltaGap]:
+        """returns sorted list of CarDeltaGap in order of largest negative number to smallest negative number"""
+        delta_gaps: list[CarDeltaGap] = []
+        # loop positions ahead of player
         for pos in range(1, self.position):
             car_ahead = cars_dict[positions_idx_map[pos]]
             delta_gap = self.get_delta_gap_after_lap(car_ahead)
             if delta_gap is None:
                 continue
             delta_gaps.append(CarDeltaGap(car_idx=car_ahead.idx, delta_gap=delta_gap))
+        # sorted largest neg to smallest neg (could be into positive if car ahead increased gap)
         delta_gaps.sort(key=lambda dg: dg.delta_gap)
         return delta_gaps
+
+    def get_gap_to(self, other: Car) -> float | None:
+        lap_to_compare = self.get_last_shared_completed_lap(other)
+        if lap_to_compare <= 1:
+            return None
+
+        lap_idx_to_compare = lap_to_compare - 1
+
+        return (
+            self.laps[lap_idx_to_compare].estimated_timestamp
+            - other.laps[lap_idx_to_compare].estimated_timestamp
+        )
 
     def did_start_new_lap(self, old_car: Car) -> bool:
         return (
