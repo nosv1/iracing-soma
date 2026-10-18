@@ -105,3 +105,7 @@ class Recorder:
                 if item is self.STOP:
                     break
                 f.write(f"{item}\n")
+
+    def stop(self):
+        self.q.put(self.STOP)
+        self._t.join()
