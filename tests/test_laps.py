@@ -1,8 +1,14 @@
+import logging
+
 import pytest
 
-from soma.handler import handle_frame
+from soma.handler import handle_events, handle_frame
 from soma.loader import Loader
 from soma.session import Session
+from soma.speaker import Speaker
+
+logger = logging.getLogger(__file__)
+logging.basicConfig(level=logging.INFO)
 
 
 @pytest.mark.parametrize(
@@ -22,7 +28,24 @@ def test_delta_gap_after_lap(laps_session: Session) -> None:
     )
 
 
-def test_sorted_delta_gaps(laps_p2_loader: Loader) -> None:
+def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
     session: Session | None = None
-    for snapshot in laps_p2_loader.snapshots():
+    for snapshot in laps_p3_loader.snapshots():
         session = handle_frame(session, snapshot)
+        if session.session_tick == 990:
+            sorted_delta_gaps = session.cars[
+                session.player_car_idx
+            ].get_delta_gaps_ahead(session.cars, session.positions)
+            assert -0.4 == pytest.approx(sorted_delta_gaps[0].delta_gap)
+            assert session.cars[sorted_delta_gaps[0].car_idx].position == 2
+            break
+
+
+def test_caught_call(laps_p3_loader: Loader, speaker: Speaker) -> None:
+    try:
+        session: Session | None = None
+        for snapshot in laps_p3_loader.snapshots():
+            session = handle_frame(session, snapshot)
+            handle_events(session, speaker)
+    finally:
+        speaker.stop()
