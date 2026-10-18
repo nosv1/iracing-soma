@@ -1,4 +1,3 @@
-
 import pytest
 
 from soma.session import Session
@@ -7,7 +6,7 @@ from soma.session import Session
 @pytest.mark.parametrize(
     "idx, expected", [(0, [0.388, 4.388]), (1, [0.769231, 4.615385])]
 )
-def test_laps_detected(laps_session: Session, idx: int, expected: list[float]) -> None:
+def test_lap_timestamps(laps_session: Session, idx: int, expected: list[float]) -> None:
     assert len(laps_session.cars[0].laps) == 2 and len(laps_session.cars[1].laps) == 2
     actual_timestamps = []
     for lap in laps_session.cars[idx].laps:
