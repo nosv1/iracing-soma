@@ -46,6 +46,11 @@ def laps_loader(recordings_path: Path) -> Loader:
 
 
 @pytest.fixture(scope="module")
+def laps_p2_loader(recordings_path: Path) -> Loader:
+    return Loader(recordings_path / "laps_p2")
+
+
+@pytest.fixture(scope="module")
 def snapshots_with_laps_iterator(laps_loader: Loader) -> Iterator[Snapshot]:
     return laps_loader.snapshots()
 

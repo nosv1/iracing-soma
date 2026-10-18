@@ -1,5 +1,7 @@
 import pytest
 
+from soma.handler import handle_frame
+from soma.loader import Loader
 from soma.session import Session
 
 
@@ -18,3 +20,9 @@ def test_delta_gap_after_lap(laps_session: Session) -> None:
     assert pytest.approx(0.153846) == pytest.approx(
         laps_session.cars[0].get_delta_gap_after_lap(laps_session.cars[1]), abs=1e-6
     )
+
+
+def test_sorted_delta_gaps(laps_p2_loader: Loader) -> None:
+    session: Session | None = None
+    for snapshot in laps_p2_loader.snapshots():
+        session = handle_frame(session, snapshot)
