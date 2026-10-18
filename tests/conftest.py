@@ -2,12 +2,14 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from piper import PiperVoice
 
 from soma.driver import Driver
 from soma.handler import handle_frame
 from soma.irsdk_vars import SESSION_TICK
 from soma.loader import Loader, Snapshot
 from soma.session import Session
+from soma.speaker import Speaker
 
 
 def get_idx_snapshot_dict(loader: Loader) -> dict[int, Snapshot]:
@@ -17,6 +19,15 @@ def get_idx_snapshot_dict(loader: Loader) -> dict[int, Snapshot]:
 @pytest.fixture(scope="module")
 def recordings_path() -> Path:
     return Path(__file__).parent / "recordings"
+
+
+@pytest.fixture(scope="module")
+def speaker() -> Speaker:
+    cur_dir = Path(__file__).parent / ".."
+    voices_dir = cur_dir / "voices"
+    voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
+    speaker = Speaker(voice=PiperVoice.load(voice_path))
+    return speaker
 
 
 ############       VALID FIXTURES       ############
@@ -48,6 +59,11 @@ def laps_loader(recordings_path: Path) -> Loader:
 @pytest.fixture(scope="module")
 def laps_p2_loader(recordings_path: Path) -> Loader:
     return Loader(recordings_path / "laps_p2")
+
+
+@pytest.fixture(scope="module")
+def laps_p3_loader(recordings_path: Path) -> Loader:
+    return Loader(recordings_path / "laps_p3")
 
 
 @pytest.fixture(scope="module")
