@@ -27,6 +27,24 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
     first). Reaction: `Throttle` onset is probably cleaner than a jump in `Speed`, which lags.
   - The 10 Hz recordings are too coarse (100 ms steps against a ~200–500 ms reaction). Live
     60 Hz is 17 ms. Or record at 60 Hz around the start (ties into the fps config below).
+- **Braking smoothness**: a reading on how smooth my braking is.
+  - Open: smooth how? Spiky application, a ragged release (trail braking), or pumping mid-zone.
+    Each is a different measure; pick one first.
+  - `Brake` / `BrakeRaw` (0–1), `BrakeABSactive`, `LongAccel` (`LongAccel_ST` is 360 Hz). Pedal
+    traces need more than 10 Hz: live 60 Hz, or record faster (fps config below).
+  - Needs a "what to do", and when to say it (after the corner? end of lap? on request?).
+- **Watch my splits**: running alone, chasing or managing, I want to know how my laps look
+  without a dash that shows a projected lap.
+  - Projected lap ≈ reference lap + live delta: `LapDeltaToBestLap`,
+    `LapDeltaToSessionBestLap`, `LapDeltaToOptimalLap`, `LapDeltaToSessionLastlLap` (sic), each
+    with an `_OK` valid flag and a `_DD` rate. `LapCurrentLapTime` is the F3-box estimate.
+  - Open: which reference (my best, last lap, session best), and what it says: projected lap,
+    up/down vs reference, trend over the last few laps.
+- **"Keep me posted on X"**: tell Soma to watch something more or less often, by voice.
+  - Shape: a watch list, topic → how often (every lap, every sector, only on change, stop).
+    Splits above would be the first topic.
+  - Fits the router: "keep me posted on lap times" → a function call with topic + cadence.
+  - Ties to per-key cooldowns on callouts (OblivionsPeak's `CalloutManager`, in notes.md).
 - **Config file**: settings out of `main.py`, starting with recorded fps.
 - **Ruff N802 on `iRacing` names** (`recorder.py`): keep the casing and silence ruff. Either a
   per-line `# noqa: N802`, or once in `pyproject.toml` under `[tool.ruff.lint.pep8-naming]`.
