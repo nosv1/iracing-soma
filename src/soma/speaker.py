@@ -18,6 +18,8 @@ class Speaker:
         self._t = threading.Thread(target=self.speaker)
         self._t.start()
 
+        self.add_to_queue("Speaker initialized")
+
     def add_to_queue(self, text: str):
         self.q.put(text)
 
