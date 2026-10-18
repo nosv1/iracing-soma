@@ -2,14 +2,16 @@ import argparse
 import logging
 import time
 from pathlib import Path
+from queue import Queue
 
 from piper import PiperVoice
 
-from soma.handler import handle_frame
+from soma.handler import handle_events, handle_frame
 from soma.iracing import iRacing
 from soma.loader import Loader
 from soma.recorder import Recorder
 from soma.session import Session
+from soma.speaker import Speaker
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -52,15 +54,16 @@ def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
     return next_stop_check
 
 
-def loop_recording(loader: Loader, voice: PiperVoice) -> None:
+def loop_recording(loader: Loader, speaker: Speaker) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
     for frame in loader.snapshots():
         session = handle_frame(session, frame)
+        handle_events(session, speaker)
 
 
 def loop_iracing_stream(
-    stop_file: Path, recorder: Recorder | None, voice: PiperVoice
+    stop_file: Path, recorder: Recorder | None, speaker: Speaker
 ) -> None:
     ir = iRacing()
     ir.connect()
@@ -85,6 +88,7 @@ def loop_iracing_stream(
                     recorder.handle_new_tick(ir)
 
                 session = handle_frame(session, ir.ir)
+                handle_events(session, speaker)
 
                 # unfreeze data stream
                 ir.ir.unfreeze_var_buffer_latest()
@@ -99,17 +103,17 @@ def loop_iracing_stream(
                 ir.connect()
     finally:
         ir.disconnect()
+        speaker.stop()
 
         if recorder is not None:
-            recorder.q.put(recorder.STOP)
-            recorder._t.join()
+            recorder.stop()
 
 
 def main(record_path: Path | None, recording_path: Path | None) -> None:
     cur_dir = Path(__file__).resolve().parent
     voices_dir = cur_dir / "voices"
     voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
-    voice = PiperVoice.load(voice_path)
+    speaker = Speaker(voice=PiperVoice.load(voice_path))
 
     # creating this file stops the loop cleanly (finally still flushes the recorder)
     stop_file = (record_path or Path.cwd()) / "STOP"
@@ -121,14 +125,14 @@ def main(record_path: Path | None, recording_path: Path | None) -> None:
     # loop recording
     if recording_path is not None:
         loader = Loader(recording_path=recording_path)
-        loop_recording(loader, voice)
+        loop_recording(loader, speaker)
 
     # loop iracing stream
     else:
         recorder: Recorder | None = None
         if record_path is not None:
             recorder = Recorder(record_path, iracing_fps=60, recorded_fps=10)
-        loop_iracing_stream(stop_file, recorder, voice)
+        loop_iracing_stream(stop_file, recorder, speaker)
 
 
 if __name__ == "__main__":
