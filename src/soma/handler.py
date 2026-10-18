@@ -1,6 +1,17 @@
+from dataclasses import dataclass
 
+from soma.event import Event
 from soma.session import Session
 from soma.snapshot import Snapshot
+
+
+def handle_events(session: Session) -> None:
+    for car in session.cars.values():
+        if Event.CAR_NEW_LAP in car.events:
+            if car.idx == session.player_car_idx:
+                delta_gaps = car.get_delta_gaps_ahead(session.cars, session.positions)
+
+    pass
 
 
 def handle_frame(old_session: Session | None, frame: Snapshot) -> Session:
@@ -12,5 +23,5 @@ def handle_frame(old_session: Session | None, frame: Snapshot) -> Session:
         return old_session
 
     old_session.handle_frame(frame, new_session)
-    # do stuff here?
+    handle_events(old_session)
     return old_session
