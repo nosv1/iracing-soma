@@ -273,6 +273,32 @@ file. Open, his call:
   live/replay unification (live as a generator yielding snapshots). He can't picture it yet;
   parked, not a priority.
 
+### 2026-10-18 (morning): events, delta gaps ahead
+
+- Backlog: braking smoothness, watch my splits (projected lap from `LapDeltaTo*`), "keep me
+  posted on X" (topic → cadence watch list, a router call). `irsdk_vars.py` gained the vars the
+  backlog names (`e43a74b`, mine).
+- **Design problem (his):** a lap-based announcement needs "player + new lap", but
+  `Car.handle_frame` detected the lap and returned `None`, so the fact was lost. Car shouldn't
+  know it's the player (session owns `player_car_idx`). He rejected ACC's global queue (hidden
+  coupling, breaks "snapshots in, event out") and chose **events stored on the car**:
+  `car.events: list[Event]` (`soma/event.py`, `Enum`, `CAR_NEW_LAP`), cleared in
+  `Car.handle_frame`; `handler.handle_events(session)` reads them per car after
+  `Session.handle_frame`.
+- Known hole, his call to leave: cars missing from the new frame skip `handle_frame`, so their
+  events are never cleared → stale `NEW_LAP` re-read every frame. He wants proof of what a
+  disconnect looks like first. Check: a car with `CarIdxPosition` > 0 → 0 mid-race in either
+  recording. Clearing all cars' events before the loop fixes it regardless.
+- His WIP (uncommitted): `CarDeltaGap`, `Car.get_delta_gaps_ahead(cars, positions)` (cars in
+  positions 1..P−1, sorted by delta), `handle_events` with a `breakpoint()`,
+  `test_sorted_delta_gaps` (no assert yet). Fixture `tests/recordings/laps_p2/` (mine): `laps`
+  with `PlayerCarIdx` 1 (P2). Result at sign-off: `[CarDeltaGap(car_idx=0, delta_gap=-0.15385)]`,
+  the expected −2/13. Noted: `get_delta_gaps_ahead` has no return type; `update_session` never
+  refreshes `player_car_idx`.
+- Taught: module-scoped generator fixtures are consumed once (`snapshots_with_laps_iterator`
+  is empty after `laps_session`); he switched to a fresh `loader.snapshots()`. Single test:
+  `uv run pytest tests/test_laps.py::name`, `-k`, `-s`, `-x`.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
@@ -280,7 +306,9 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
-   done 10-17 (`7d7cc60`). **Now:** fix the 0-laps guard, then a template voice line for the
+   done 10-17 (`7d7cc60`). Events + `get_delta_gaps_ahead` WIP 10-18: **next** assert
+   −2/13 in `test_sorted_delta_gaps`, drop the `breakpoint()`, commit. **Then:** fix the
+   0-laps guard, then a template voice line for the
    delta (load voice once; speaking blocks the loop; decide when it fires). Mini sectors after the line works. Keep it pure (snapshots in, event
    out) so it runs against recordings. Reference once he has his own:
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo` (line crossing
