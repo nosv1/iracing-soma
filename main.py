@@ -3,11 +3,11 @@ import logging
 import time
 from pathlib import Path
 
-from irsdk import IRSDK
 from piper import PiperVoice
 
+from soma.handler import handle_frame
 from soma.iracing import iRacing
-from soma.loader import Loader, Snapshot
+from soma.loader import Loader
 from soma.recorder import Recorder
 from soma.session import Session
 
@@ -52,16 +52,11 @@ def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
     return next_stop_check
 
 
-def handle_frame(frame: IRSDK | Snapshot, voice: PiperVoice) -> Session:
-    session = Session.from_frame(frame)
-    return session
-
-
 def loop_recording(loader: Loader, voice: PiperVoice) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
     for frame in loader.snapshots():
-        session = handle_frame(frame, voice)
+        session = handle_frame(session, frame)
 
 
 def loop_iracing_stream(
@@ -89,7 +84,7 @@ def loop_iracing_stream(
                 if recorder is not None:
                     recorder.handle_new_tick(ir)
 
-                session = handle_frame(ir.ir, voice)
+                session = handle_frame(session, ir.ir)
 
                 # unfreeze data stream
                 ir.ir.unfreeze_var_buffer_latest()

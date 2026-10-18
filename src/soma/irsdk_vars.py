@@ -2,8 +2,18 @@
 
 # --- Telemetry variables (per tick) ---
 
+# Laps completed by car index
+CAR_IDX_LAP_COMPLETED = "CarIdxLapCompleted"
+# Cars last lap time (s); -1 if no timed lap yet
+CAR_IDX_LAST_LAP_TIME = "CarIdxLastLapTime"
+# Percentage distance around lap by car index (0-1 fraction, despite the % unit)
+CAR_IDX_LAP_DIST_PCT = "CarIdxLapDistPct"
+# On pit road between the cones by car index
+CAR_IDX_ON_PIT_ROAD = "CarIdxOnPitRoad"
 # Cars position in race by car index
 CAR_IDX_POSITION = "CarIdxPosition"
+# Track surface type by car index (irsdk.TrkLoc: -1 not in world .. 3 on track)
+CAR_IDX_TRACK_SURFACE = "CarIdxTrackSurface"
 # Percent of available time fg thread took with a 1 sec avg (%)
 CPU_USAGE_FG = "CpuUsageFG"
 # Average frames per second (fps)

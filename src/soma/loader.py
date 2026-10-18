@@ -1,26 +1,13 @@
 import json
 from collections.abc import Iterator
 from copy import copy
-from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
 from soma.exceptions import CorruptRecordingsError
 from soma.irsdk_vars import SESSION_TICK
-
-
-@dataclass
-class Snapshot:
-    frame: dict
-    session_yaml: dict
-
-    def __getitem__(self, key):
-        if key in self.session_yaml:
-            return self.session_yaml[key]
-        if key in self.frame:
-            return self.frame[key]
-        raise KeyError(key)
+from soma.snapshot import Snapshot
 
 
 class Loader:
