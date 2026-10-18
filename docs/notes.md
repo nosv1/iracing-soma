@@ -241,7 +241,35 @@ file. Open, his call:
   the persistent-`Car` refactor. Low-energy path: build `Car`s with hand-made `laps` directly
   (plain `__init__`), no update loop needed.
 - **Reminder (his ask):** when he's tired or hits a checkpoint, remind him to consider starting
-  [otto](https://github.com/nosv1/otto-the-robot).
+  [otto](https://github.com/nosv1/otto-the-robot). Reminded at the delta checkpoint; he chose
+  the voice line first. Still open.
+
+### 2026-10-17 (evening): lap detection + delta tested (`7d7cc60`)
+
+- His: persistent-`Car` redesign landed. `soma/handler.py` `handle_frame(session, frame)` builds
+  a throwaway `Session.from_frame`, skips duplicate ticks, then
+  `Session.handle_frame` → `Car.handle_frame` updates persistent cars in place
+  ("handle_frame → update_x" is his template). Lap = `laps_completed` up **and** pct wraps.
+  `estimate_lap_timestamp` takes prev/cur scalars (no `old_car`). `main` calls the same handler.
+- Bug he found via fixture: crossing denominator written `p1 − (1 − p0)` instead of
+  `p1 + (1 − p0)`; gave 0.4158 vs 0.388, plausible-looking, lap-count test passed anyway. Only
+  known-answer asserts caught it. Also found the `laps[lap_to_compare]` off-by-one himself.
+- Tests: fixture `tests/recordings/laps/` (his; same numbers as the old scratch `crossings`,
+  which is gone). Module-scoped `laps_session` fixture, parametrized timestamp test, delta test.
+  8 green, mypy clean, ruff 10 (6 auto-fixable unused imports, incl. `PiperVoice` in
+  `handler.py`, `IRSDK` in `session.py`).
+- Taught: `pp`, `pp locals()`, `display`, `interact`, `pytest --pdb`; `approx` goes on the
+  expected side (bool raises); `zip` truncates silently; rounded expected values vs default
+  `rel=1e-6` (use `2/13`, `10/13`, `60/13`, or `abs=`); parametrize reruns fixtures → module
+  scope + ScopeMismatch.
+- Delta = self lap time − other lap time (= `CarIdxLastLapTime` difference): `+` means self
+  was slower, consistent whoever leads. He keeps it caller-relative, favors "relative to the
+  leading car" later. His docstring still says "+ = further apart", false when self leads
+  (his own test: +0.154 while closing). Noted, not fixed.
+- Open, fix now (before voice): 0 laps → index −1 → `laps[-2]` `IndexError`; guard misses it.
+- His loop is copied 3× (live, replay, test fixture); he dislikes it. Root is the parked
+  live/replay unification (live as a generator yielding snapshots). He can't picture it yet;
+  parked, not a priority.
 
 ## Next
 
@@ -249,10 +277,9 @@ file. Open, his call:
 feature (my ordering). Caught call goes first, against the replay loop as it stands.
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
-1. His: **caught-call detection**, against the loader/replay loop as is. **Now (10-16):** the
-   persistent-`Car` redesign, then a test that runs `crossings` through the update loop and
-   asserts delta ≈ 0.153846 (lap-time version first, interpolated crossings next), then a
-   template voice line. Mini sectors after the line works. Keep it pure (snapshots in, event
+1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
+   done 10-17 (`7d7cc60`). **Now:** fix the 0-laps guard, then a template voice line for the
+   delta (load voice once; speaking blocks the loop; decide when it fires). Mini sectors after the line works. Keep it pure (snapshots in, event
    out) so it runs against recordings. Reference once he has his own:
    `git show 282c4a7:irsdk/irsdk_lapTiming/lapTiming.cpp`, `processLapInfo` (line crossing
    from `CarIdxLapDistPct` wrap).
