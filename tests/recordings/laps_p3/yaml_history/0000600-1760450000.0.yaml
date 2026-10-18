@@ -1,0 +1,13 @@
+---
+DriverInfo:
+ DriverCarIdx: 2
+ Drivers:
+ - CarIdx: 0
+   UserName: Leader One
+ - CarIdx: 1
+   UserName: Second Two
+ - CarIdx: 2
+   UserName: Player Three
+ - CarIdx: 64
+   UserName: Pace Car
+...
