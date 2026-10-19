@@ -299,6 +299,37 @@ file. Open, his call:
   is empty after `laps_session`); he switched to a fresh `loader.snapshots()`. Single test:
   `uv run pytest tests/test_laps.py::name`, `-k`, `-s`, `-x`.
 
+### 2026-10-18 (evening): Soma speaks; caught call checked on a real race
+
+- **First spoken output** (his): `Speaker` (queue + thread, Piper), `handle_events` builds the
+  caught call ("Caught P5 by 0.2 seconds / Gap is 1.3 seconds..."). Tests: `laps_p3` fixture
+  (mine; 3 cars, player P3, sorted order ≠ position order), sorted-gaps and caught-call tests.
+  Backlog: radio effects.
+- **Live run aborted, replay instead.** Started live with a watcher; he stopped it. A silent replay
+  of `20261016-164405` crashed in qualifying (`KeyError`, stale `session.positions` from the first
+  frame). He fixed positions, then laps carrying over between sessions (`SessionTime` resets →
+  312 s deltas). Lesson (his): replay the recordings before going live.
+- **Checked against official times:** all 4 race calls match `CarIdxLastLapTime` differences keyed
+  by lap number (−0.238, −0.367, −0.276, −0.070 → said 0.2, 0.4, 0.3, 0.1). I first said calls 2–4
+  were wrong; that check read a stale value (below).
+- **`CarIdxLastLapTime` posts late:** 1.1 s min, ~1.8 s median after the crossing, every car,
+  both recordings; on the crossing frame it still holds the previous lap. `LapLastLapTime`,
+  `LapCurrentLapTime` reset and `CarIdxLastLapTime` change on the same frame (player, 11/11
+  laps); reset value = time since the real crossing (728.133 − 2.182 = 725.951 vs his
+  interpolated 725.969). Posted value = his crossing diff (median 0.0000, ~85% within 10 ms).
+  So `Lap.lap_time_s` (read at crossing) is one lap stale; timestamps are right.
+- **Edge cases found in recordings, not handled:** pit-lane start makes `CarIdxLapCompleted` go
+  0→1→0→1 with a pct wrap in pit lane (10-14 car 9; likely double-counted lap); car not in world
+  flickers laps/pct/last to −1 and back (10-16 car 4); pct slightly < 0 at the line (4 frames).
+- Open: lap pairing by list index vs lap number (late joiners, lapped cars); "Gap is 8.3 s" in
+  the last call unverified; whether a 0.07 s/lap gain on a car 8 s up is worth calling; fake
+  speaker for tests (`test_caught_call` speaks aloud, needs gitignored `voices/`, no assert).
+- Scratch tools (session scratchpad, will be lost): `replay_dry.py` (prints calls per tick),
+  `replay_check2.py` (calls vs official lap-keyed deltas), `lastlap_lag.py`. Empty folder
+  `recordings/20261018-174349/` left from the aborted live run.
+- His WIP uncommitted at sign-off: `main.py`, `car.py`, `handler.py`, `lap.py`, `session.py`,
+  `test_laps.py` (incl. a `breakpoint()` in `handle_events`).
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
@@ -306,8 +337,9 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
-   done 10-17 (`7d7cc60`). Events + `get_delta_gaps_ahead` WIP 10-18: **next** assert
-   −2/13 in `test_sorted_delta_gaps`, drop the `breakpoint()`, commit. **Then:** fix the
+   done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Next:** drop
+   the `breakpoint()`, commit the session/positions fixes, `lap_time_s` lag, then live run.
+   Old plan, for reference: fix the
    0-laps guard, then a template voice line for the
    delta (load voice once; speaking blocks the loop; decide when it fires). Mini sectors after the line works. Keep it pure (snapshots in, event
    out) so it runs against recordings. Reference once he has his own:
