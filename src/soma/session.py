@@ -1,15 +1,54 @@
+import logging
 from dataclasses import dataclass, field
+from enum import StrEnum
 
 from soma.car import Car
 from soma.driver import Driver
-from soma.irsdk_vars import PLAYER_CAR_IDX, SESSION_TICK, SESSION_TIME
+from soma.irsdk_vars import (
+    PLAYER_CAR_IDX,
+    SESSION_ID,
+    SESSION_INFO,
+    SESSION_NUM,
+    SESSION_TICK,
+    SESSION_TIME,
+    SESSION_TYPE,
+    SESSIONS,
+    WEEKEND_INFO,
+)
 from soma.loader import Snapshot
+
+logger = logging.getLogger(__file__)
+
+
+class SessionType(StrEnum):
+    PRACTICE = "Practice"
+    LONE_QUALIFY = "Lone Qualify"
+    OPEN_QUALIFY = "Open Qualify"
+    RACE = "Race"
+    UNKNOWN = "Unknown"
+
+    @classmethod
+    def _missing_(cls, value):
+        logger.warning(f"UNKNOWN SESSION TYPE: {value:!r}")
+        return cls.UNKNOWN
+
+    def is_practice(self) -> bool:
+        return self in {SessionType.PRACTICE}
+
+    def is_qualifying(self) -> bool:
+        return self in {SessionType.LONE_QUALIFY, SessionType.OPEN_QUALIFY}
+
+    def is_race(self) -> bool:
+        return self in {SessionType.RACE}
 
 
 @dataclass
 class Session:
+    session_id: int
+    session_num: int
     session_time: float
     session_tick: int
+    session_type: SessionType
     player_car_idx: int
     cars: dict[int, Car] = field(default_factory=dict)  # CarIdx, Car
     drivers: dict[int, Driver] = field(default_factory=dict)  # CarIdx, Driver
@@ -22,20 +61,30 @@ class Session:
         # didn't before
         cars = Car.cars_from_frame(frame)
         drivers = Driver.drivers_from_frame(frame)
-        positions = {c.position: c.idx for c in cars.values()}
 
         return Session(
+            session_id=frame[WEEKEND_INFO][SESSION_ID],
+            session_num=frame[SESSION_NUM],
             session_time=frame[SESSION_TIME],
             session_tick=frame[SESSION_TICK],
+            session_type=SessionType(
+                frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][SESSION_TYPE]
+            ),
             player_car_idx=frame[PLAYER_CAR_IDX],
             cars=cars,
             drivers=drivers,
-            positions=positions,
         )
 
     def update_session(self, new_session: Session) -> None:
+        self.session_id = new_session.session_id
         self.session_time = new_session.session_time
         self.session_tick = new_session.session_tick
+        self.session_type = new_session.session_type
+        self.player_car_idx = new_session.player_car_idx
+        self.positions = {c.position: c.idx for c in new_session.cars.values()}
+
+    def is_race(self) -> bool:
+        return self.session_type.is_race()
 
     def handle_frame(self, frame: Snapshot, new_session: Session):
         self.update_session(new_session)

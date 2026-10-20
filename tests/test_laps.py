@@ -15,9 +15,14 @@ logging.basicConfig(level=logging.INFO)
     "idx, expected", [(0, [0.388, 4.388]), (1, [0.769231, 4.615385])]
 )
 def test_lap_timestamps(laps_session: Session, idx: int, expected: list[float]) -> None:
-    assert len(laps_session.cars[0].laps) == 2 and len(laps_session.cars[1].laps) == 2
+    car_0 = laps_session.cars[0]
+    car_1 = laps_session.cars[1]
+    assert (
+        len(car_0.laps[car_0.session_num]) == 2
+        and len(car_1.laps[car_1.session_num]) == 2
+    )
     actual_timestamps = []
-    for lap in laps_session.cars[idx].laps:
+    for lap in laps_session.cars[idx].laps[laps_session.cars[idx].session_num]:
         actual_timestamps.append(lap.estimated_timestamp)
     assert actual_timestamps == pytest.approx(expected)
 
