@@ -2,10 +2,10 @@ import logging
 
 import pytest
 
+from soma.event_fact import CaughtFact
 from soma.handler import handle_events, handle_frame
 from soma.loader import Loader
 from soma.session import Session
-from soma.speaker import Speaker
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
@@ -46,11 +46,19 @@ def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
             break
 
 
-def test_caught_call(laps_p3_loader: Loader, speaker: Speaker) -> None:
-    try:
-        session: Session | None = None
-        for snapshot in laps_p3_loader.snapshots():
-            session = handle_frame(session, snapshot)
-            handle_events(session, speaker)
-    finally:
-        speaker.stop()
+def test_caught_call(laps_p3_loader: Loader) -> None:
+    session: Session | None = None
+    tick_990_caught_fact: CaughtFact | None = None
+    for snapshot in laps_p3_loader.snapshots():
+        session = handle_frame(session, snapshot)
+        event_facts = handle_events(session)
+        if session.session_tick == 990:
+            tick_990_caught_fact = event_facts[0]
+            assert len(event_facts) == 1
+            assert isinstance(tick_990_caught_fact, CaughtFact)
+            break
+
+    assert tick_990_caught_fact.pos == 2
+    assert tick_990_caught_fact.gain_s_as_positive == pytest.approx(0.4)
+    assert tick_990_caught_fact.gap_fact.pos == 2
+    assert tick_990_caught_fact.gap_fact.gap_s_as_positive == pytest.approx(0.58)
