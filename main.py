@@ -5,7 +5,7 @@ from pathlib import Path
 
 from piper import PiperVoice
 
-from soma.handler import handle_events, handle_frame
+from soma.do_stuff import do_stuff
 from soma.iracing import iRacing
 from soma.loader import Loader
 from soma.recorder import Recorder
@@ -57,8 +57,8 @@ def loop_recording(loader: Loader, speaker: Speaker) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
     for frame in loader.snapshots():
-        session = handle_frame(session, frame)
-        handle_events(session, speaker)
+        packet = do_stuff(session=session, frame=frame, speaker=speaker)
+        session = packet.session
 
 
 def loop_iracing_stream(
@@ -87,8 +87,8 @@ def loop_iracing_stream(
                 if recorder is not None:
                     recorder.handle_new_tick(ir)
 
-                session = handle_frame(session, ir.ir)
-                handle_events(session, speaker)
+                packet = do_stuff(session=session, frame=ir.ir, speaker=speaker)
+                session = packet.session
 
                 # unfreeze data stream
                 ir.ir.unfreeze_var_buffer_latest()
