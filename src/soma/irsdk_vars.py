@@ -8,7 +8,8 @@ BRAKE = "Brake"
 BRAKE_ABS_ACTIVE = "BrakeABSactive"
 # Raw brake input 0=brake released to 1=max pedal force (0-1 fraction)
 BRAKE_RAW = "BrakeRaw"
-# Laps completed by car index
+# Laps completed by car index; per session (resets each session), -1 until the car
+# first crosses the line (a rolling start goes -1 -> 0 at the green, with a pct wrap)
 CAR_IDX_LAP_COMPLETED = "CarIdxLapCompleted"
 # Cars last lap time (s); -1 if no timed lap yet
 CAR_IDX_LAST_LAP_TIME = "CarIdxLastLapTime"
@@ -20,6 +21,8 @@ CAR_IDX_ON_PIT_ROAD = "CarIdxOnPitRoad"
 CAR_IDX_POSITION = "CarIdxPosition"
 # Track surface type by car index (irsdk.TrkLoc: -1 not in world .. 3 on track)
 CAR_IDX_TRACK_SURFACE = "CarIdxTrackSurface"
+# Temperature of air at start/finish line (C)
+AIR_TEMP = "AirTemp"
 # Notify if car is to the left or right of driver (irsdk.CarLeftRight)
 CAR_LEFT_RIGHT = "CarLeftRight"
 # Percent of available time fg thread took with a 1 sec avg (%)
@@ -31,6 +34,8 @@ ENGINE_WARNINGS = "EngineWarnings"
 FAST_REPAIR_AVAILABLE = "FastRepairAvailable"
 # How many fast repairs used so far
 FAST_REPAIR_USED = "FastRepairUsed"
+# Liters of fuel remaining (l)
+FUEL_LEVEL = "FuelLevel"
 # Average frames per second (fps)
 FRAME_RATE = "FrameRate"
 # Percent of available time gpu took with a 1 sec avg (%)
@@ -59,19 +64,28 @@ LAP_DELTA_TO_SESSION_LAST_LAP = "LapDeltaToSessionLastlLap"
 LAP_DELTA_TO_SESSION_LAST_LAP_OK = "LapDeltaToSessionLastlLap_OK"
 # Players last lap time (s)
 LAP_LAST_LAP_TIME = "LapLastLapTime"
+# LF tire middle percent tread remaining (0-1 fraction, despite the % unit; 1.0 = fresh)
+LF_WEAR_M = "LFwearM"
 # Longitudinal acceleration, including gravity (m/s^2)
 LONG_ACCEL = "LongAccel"
 # Engine oil pressure (bar)
 OIL_PRESS = "OilPress"
 # Time left for optional repairs if repairs are active (s)
 PIT_OPT_REPAIR_LEFT = "PitOptRepairLeft"
-# Time left for mandatory pit repairs if repairs are active (s)
+# Time left for mandatory pit repairs if repairs are active (s). Stayed 0 on track and
+# on pit road with damage (10-20); use ENGINE_WARNINGS 0x0080 to detect damage
 PIT_REPAIR_LEFT = "PitRepairLeft"
+# Players class position in race
+PLAYER_CAR_CLASS_POSITION = "PlayerCarClassPosition"
 # Players carIdx
 PLAYER_CAR_IDX = "PlayerCarIdx"
+# Players own incident count for this session
+PLAYER_CAR_MY_INCIDENT_COUNT = "PlayerCarMyIncidentCount"
+# Players position in race
+PLAYER_CAR_POSITION = "PlayerCarPosition"
 # Session flags (irsdk.Flags)
 SESSION_FLAGS = "SessionFlags"
-# New improved laps left till session ends
+# New improved laps left till session ends; 32767 seen in a timed practice
 SESSION_LAPS_REMAIN_EX = "SessionLapsRemainEx"
 # Session number
 SESSION_NUM = "SessionNum"
@@ -81,10 +95,14 @@ SESSION_STATE = "SessionState"
 SESSION_TICK = "SessionTick"
 # Seconds since session start (s)
 SESSION_TIME = "SessionTime"
+# Seconds left till session ends (s)
+SESSION_TIME_REMAIN = "SessionTimeRemain"
 # GPS vehicle speed (m/s)
 SPEED = "Speed"
 # 0=off throttle to 1=full throttle (0-1 fraction, despite the % unit)
 THROTTLE = "Throttle"
+# Temperature of track measured by crew around track (C)
+TRACK_TEMP_CREW = "TrackTempCrew"
 # Engine coolant temp (C)
 WATER_TEMP = "WaterTemp"
 
