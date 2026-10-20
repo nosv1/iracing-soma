@@ -133,20 +133,27 @@ class Car:
     def handle_new_lap(self, frame: Snapshot, new_car: Car) -> None:
         self.events.append(Event.CAR_NEW_LAP)
 
+        prev_lap: Lap | None = None
         if self.session_num not in self.laps:
             self.laps[self.session_num] = []
+        else:
+            prev_lap = self.laps[self.session_num][-1]
+
+        estimated_lap_timestamp = Lap.estimate_lap_timestamp(
+            session_time=new_car.session_time,
+            prev_session_time=self.session_time,
+            lap_dist=new_car.lap_dist,
+            prev_lap_dist=self.lap_dist,
+        )
+        if prev_lap is not None:
+            estimated_lap_time = Lap.estimate_lap_time_s(
+                prev_lap.estimated_timestamp, estimated_lap_timestamp
+            )
+        else:
+            estimated_lap_time = None
 
         self.laps[self.session_num].append(
-            Lap.from_frame(
-                frame,
-                self.idx,
-                Lap.estimate_lap_timestamp(
-                    session_time=new_car.session_time,
-                    prev_session_time=self.session_time,
-                    lap_dist=new_car.lap_dist,
-                    prev_lap_dist=self.lap_dist,
-                ),
-            )
+            Lap.from_frame(frame, self.idx, estimated_lap_timestamp, estimated_lap_time)
         )
 
     def handle_frame(self, frame: Snapshot, new_car: Car):
