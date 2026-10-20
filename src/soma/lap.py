@@ -1,12 +1,18 @@
 from dataclasses import dataclass
 
-from soma.irsdk_vars import CAR_IDX_LAP_COMPLETED, CAR_IDX_LAST_LAP_TIME, SESSION_TIME
+from soma.irsdk_vars import (
+    CAR_IDX_LAP_COMPLETED,
+    CAR_IDX_LAST_LAP_TIME,
+    SESSION_NUM,
+    SESSION_TIME,
+)
 from soma.snapshot import Snapshot
 
 
 @dataclass
 class Lap:
     car_idx: int
+    session_number: int
     lap_number: int
     lap_time_s: float
     session_time: float  # timestamp of the tick when this lap was discovered
@@ -18,6 +24,7 @@ class Lap:
     ) -> Lap:
         return Lap(
             car_idx=car_idx,
+            session_number=frame[SESSION_NUM],
             lap_number=frame[CAR_IDX_LAP_COMPLETED][car_idx],
             lap_time_s=frame[CAR_IDX_LAST_LAP_TIME][car_idx],
             session_time=frame[SESSION_TIME],

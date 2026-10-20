@@ -14,36 +14,42 @@ def handle_events(session: Session, speaker: Speaker | None) -> None:
             continue
         # is player
 
-        if len(car.laps) <= 1:
+        if len(car.laps[car.session_num]) <= 1:
             continue
         # is past lap 1
 
-        if car.position <= 1:
-            continue
-        # is not p1
+        if session.is_race():
+            if car.position <= 1:
+                continue
+            # is not p1
 
-        delta_gaps = car.get_delta_gaps_ahead(session.cars, session.positions)
-        largest_delta_gap = delta_gaps[0]
-        largest_delta_gap_car = session.cars[largest_delta_gap.car_idx]
-        car_ahead = session.cars[session.positions[car.position - 1]]
-        if largest_delta_gap.delta_gap <= 0:
-            caught_str = f"Caught P{largest_delta_gap_car.position} by {abs(round(largest_delta_gap.delta_gap, 1))} seconds\n"
-            gap_to = car.get_gap_to(session.cars[largest_delta_gap.car_idx])
-            gap_to_str = (
-                "" if gap_to is None else f"Gap is {abs(round(gap_to, 1))} seconds"
-            )
-            gap_to_ahead = car.get_gap_to(car_ahead)
-            gap_to_ahead_str = (
-                ""
-                if car_ahead == largest_delta_gap_car
-                else (
-                    ""
-                    if gap_to_ahead is None
-                    else f" and {abs(round(gap_to_ahead, 1))} seconds to car ahead"
+            delta_gaps = car.get_delta_gaps_ahead(session.cars, session.positions)
+            if len(delta_gaps) == 0:
+                continue
+            # delta gaps exist
+
+            largest_delta_gap = delta_gaps[0]
+            largest_delta_gap_car = session.cars[largest_delta_gap.car_idx]
+            car_ahead = session.cars[session.positions[car.position - 1]]
+            if largest_delta_gap.delta_gap <= 0:
+                caught_str = f"Caught P{largest_delta_gap_car.position} by {abs(round(largest_delta_gap.delta_gap, 1))} seconds\n"
+                gap_to = car.get_gap_to(session.cars[largest_delta_gap.car_idx])
+                gap_to_str = (
+                    "" if gap_to is None else f"Gap is {abs(round(gap_to, 1))} seconds"
                 )
-            )
-            if speaker:
-                speaker.add_to_queue(f"{caught_str}{gap_to_str}{gap_to_ahead_str}")
+                gap_to_ahead = car.get_gap_to(car_ahead)
+                gap_to_ahead_str = (
+                    ""
+                    if car_ahead == largest_delta_gap_car
+                    else (
+                        ""
+                        if gap_to_ahead is None
+                        else f" and {abs(round(gap_to_ahead, 1))} seconds to car ahead"
+                    )
+                )
+                if speaker:
+                    speaker.add_to_queue(f"{caught_str}{gap_to_str}{gap_to_ahead_str}")
+        # is not race
 
 
 def handle_frame(old_session: Session | None, frame: Snapshot) -> Session:
