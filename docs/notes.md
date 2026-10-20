@@ -368,6 +368,31 @@ file. Open, his call:
 - pytest warnings (57): `sounddevice` uses `.shape =`, deprecated in NumPy 2.5. Not ours; gone
   once tests use a fake speaker.
 
+### 2026-10-20: event facts, red test stubs
+
+- **Workflow (his):** a red `pytest.fail("TODO: input -> expected")` stub left at sign-off gives
+  next session an immediate start without blocking the sign-off. I create stub files when a test
+  is identified; he writes the bodies. `5df0e2d` (mine): `test_car.py` (delta gap: no laps either
+  car, self has no laps, unequal counts), server-switch `player_car_idx`, YAML tick ⊂ frame ticks.
+  Real bug behind one: `get_last_shared_completed_lap` checks only `other` has laps this session;
+  self without → `KeyError`.
+- **Facts, his:** `handle_events(session)` returns `list[EventFact]` (`event_fact.py`:
+  `GapFact`, `CaughtFact` with nested `GapFact`, `event: ClassVar[str]`, `to_json`, `to_str`);
+  speaking moved to `handle_event_facts(facts, speaker)`. No speaker in tests now. Shared loop
+  steps pulled into `do_stuff()` (live + replay). He dropped subject/verb/object/adjunct for one
+  dataclass per event: named typed fields, raw numbers (round when spoken), car resolved to a
+  position for the line. Taught: dataclass inheritance (parent fields first, default-ordering
+  `TypeError`, `kw_only`), `ClassVar`.
+- Ruff: `extend-ignore-names = ["*iRacing*"]` (his commit `1244752`); 4 E501 left.
+- **WIP at sign-off (uncommitted):** `main.py`, `handler.py`, `test_laps.py`, `do_stuff.py`,
+  `event_fact.py`. `test_caught_call` red: `0.3999999999999999 != 0.4` (float `==`). Fix: approx
+  per float field (approx doesn't do nested dicts, he checked). Noted: custom `__eq__` on both
+  facts duplicates the dataclass one and raises `AttributeError` across types; `do_stuff`
+  `session` param should be `Session | None` (mypy); `Packet` wraps only `Session`; check the
+  car-ahead `GapFact` isn't a duplicate when the car ahead is the caught car.
+- Open: hub spec ([ideas/iracing-race-engineer.md](https://github.com/nosv1/nosv1/blob/main/ideas/iracing-race-engineer.md))
+  still describes the live code fallback (dropped 10-13); offered to fix, no answer yet.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
