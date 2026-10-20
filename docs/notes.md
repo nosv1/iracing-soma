@@ -354,9 +354,10 @@ file. Open, his call:
   read them.
 - **His WIP at sign-off (uncommitted):** `SessionType(StrEnum)` with `is_practice` /
   `is_qualifying` / `is_race` (taught: value lookup `SessionType("Race")`, `_missing_` →
-  `UNKNOWN`; `@dataclass` on an enum makes it unhashable). `Session.from_frame` still reads
-  `frame[SESSION_ID]` / `frame[SESSION_TYPE]` top-level → `KeyError`; both are nested
-  (`WeekendInfo`, `SessionInfo.Sessions[SessionNum]`). Tests fail until that's fixed.
+  `UNKNOWN`; `@dataclass` on an enum makes it unhashable; `!r` = repr, `{v:!r}` is a format
+  spec and raised inside `_missing_`, fixed). `Session.from_frame` reads `WeekendInfo` and
+  `Sessions[SessionNum].SessionType`. At sign-off: 10 green, mypy clean, ruff 8 (old). Still no
+  test for an unknown type → `UNKNOWN`. `CURRENT_SESSION_NUM` added (`71797d4`).
 - Noted, not fixed: cars from the old server persist in `session.cars` (idx reuse across
   servers); recorder `index.json` keyed by tick alone collides across a tick reset (today's two
   servers didn't collide only because their ticks fell on different steps of the 6-tick spacing).
