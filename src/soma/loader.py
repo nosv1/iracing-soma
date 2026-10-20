@@ -43,8 +43,10 @@ class Loader:
 
         if len(local_yaml_history_index.keys()) != 0:
             raise CorruptRecordingsError(
-                "YAML history should have been emptied by the time all frames are loaded."
-                "There is a mismatch somewhere, each YAML tick should exist as a frame in frames.txt\n"
+                "YAML history should have been emptied by the time all frames are "
+                "loaded."
+                "There is a mismatch somewhere, each YAML tick should exist as a frame "
+                "in frames.txt\n"
                 "\n".join(
                     [f"missing: {tick}" for tick in self._yaml_history_index.keys()]
                 )

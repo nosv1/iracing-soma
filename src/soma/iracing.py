@@ -5,7 +5,7 @@ import irsdk
 logger = logging.getLogger(__file__)
 
 
-class iRacing:  # noqa: N801  (brand name capitalization)
+class iRacing:
     def __init__(self):
         self.ir = irsdk.IRSDK()
 

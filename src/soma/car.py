@@ -96,7 +96,8 @@ class Car:
     def get_delta_gaps_ahead(
         self, cars_dict: dict[int, Car], positions_idx_map: dict[int, int]
     ) -> list[CarDeltaGap]:
-        """returns sorted list of CarDeltaGap in order of largest negative number to smallest negative number"""
+        """returns sorted list of CarDeltaGap in order of largest negative
+        number to smallest negative number"""
         delta_gaps: list[CarDeltaGap] = []
         # loop positions ahead of player
         for pos in range(1, self.position):
@@ -105,7 +106,8 @@ class Car:
             if delta_gap is None:
                 continue
             delta_gaps.append(CarDeltaGap(car_idx=car_ahead.idx, delta_gap=delta_gap))
-        # sorted largest neg to smallest neg (could be into positive if car ahead increased gap)
+        # sorted largest neg to smallest neg
+        # (could be into positive if car ahead increased gap)
         delta_gaps.sort(key=lambda dg: dg.delta_gap)
         return delta_gaps
 

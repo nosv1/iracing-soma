@@ -32,3 +32,7 @@ ignore_missing_imports = true
 # E/F: pycodestyle errors + pyflakes (default); I: import sorting; N: PEP 8 naming;
 # UP: modern syntax for the target Python; B: common bug patterns
 select = ["E", "F", "I", "N", "UP", "B"]
+
+[tool.ruff.lint.pep8-naming]
+# keep the brand's capitalization in names (class iRacing, queue_iRacing_frame)
+extend-ignore-names = ["*iRacing*"]
