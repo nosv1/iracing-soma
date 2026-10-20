@@ -76,6 +76,7 @@ def loop_iracing_stream(
         while True:
             do_stop_loop: bool | float = check_stop_loop(next_stop_check, stop_file)
             if isinstance(do_stop_loop, bool) and do_stop_loop:
+                stop_file.unlink(missing_ok=True)
                 break
             elif isinstance(do_stop_loop, float):
                 next_stop_check = do_stop_loop
@@ -109,30 +110,36 @@ def loop_iracing_stream(
             recorder.stop()
 
 
-def main(record_path: Path | None, recording_path: Path | None) -> None:
-    cur_dir = Path(__file__).resolve().parent
-    voices_dir = cur_dir / "voices"
-    voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
-    speaker = Speaker(voice=PiperVoice.load(voice_path))
-
+def main(recording_destination: Path | None, recording_to_load: Path | None) -> None:
     # creating this file stops the loop cleanly (finally still flushes the recorder)
-    stop_file = (record_path or Path.cwd()) / "STOP"
+    stop_file = (recording_destination or Path.cwd()) / "STOP"
     stop_file.unlink(
         missing_ok=True
     )  # a leftover from last run would stop us immediately
     logger.info(f"create {stop_file} to stop")
 
-    # loop recording
-    if recording_path is not None:
-        loader = Loader(recording_path=recording_path)
-        loop_recording(loader, speaker)
+    cur_dir = Path(__file__).resolve().parent
+    recordings_dir = cur_dir / "recordings"
+    voices_dir = cur_dir / "voices"
+    voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
+    speaker = Speaker(voice=PiperVoice.load(voice_path))
 
-    # loop iracing stream
-    else:
-        recorder: Recorder | None = None
-        if record_path is not None:
-            recorder = Recorder(record_path, iracing_fps=60, recorded_fps=10)
-        loop_iracing_stream(stop_file, recorder, speaker)
+    try:
+        # loop recording
+        if recording_to_load is not None:
+            loader = Loader(recording_path=recordings_dir / recording_to_load)
+            loop_recording(loader, speaker)
+
+        # loop iracing stream
+        else:
+            recorder: Recorder | None = None
+            if recording_destination is not None:
+                recorder = Recorder(
+                    recording_destination, iracing_fps=60, recorded_fps=10
+                )
+            loop_iracing_stream(stop_file, recorder, speaker)
+    finally:
+        speaker.stop()
 
 
 if __name__ == "__main__":
