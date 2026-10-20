@@ -111,6 +111,9 @@ EVENT_TYPE = "EventType"
 
 # Section: the event's session lineup
 SESSION_INFO = "SessionInfo"
+# SessionInfo.CurrentSessionNum: index into Sessions, same as telemetry SessionNum.
+# YAML can lag telemetry (54 ticks on the 10-19 server switch): index with SESSION_NUM
+CURRENT_SESSION_NUM = "CurrentSessionNum"
 # SessionInfo.Sessions: one entry per session; index with telemetry SessionNum
 SESSIONS = "Sessions"
 # SessionInfo.Sessions[].SessionType: Practice, Lone Qualify, Race, ...
