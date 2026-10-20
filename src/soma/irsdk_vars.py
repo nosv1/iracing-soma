@@ -98,3 +98,23 @@ DRIVERS = "Drivers"
 CAR_IDX = "CarIdx"
 # Driver display name
 USER_NAME = "UserName"
+
+# Section: event/server metadata
+WEEKEND_INFO = "WeekendInfo"
+# WeekendInfo.SessionID: session id, 0 offline; changed on practice -> race server
+SESSION_ID = "SessionID"
+# WeekendInfo.SubSessionID: the results id online, 0 offline; changed on server switch
+SUB_SESSION_ID = "SubSessionID"
+# WeekendInfo.EventType: kind of event the server runs (Practice, Race, ...), not the
+# current session: the race server says Race during its own practice
+EVENT_TYPE = "EventType"
+
+# Section: the event's session lineup
+SESSION_INFO = "SessionInfo"
+# SessionInfo.Sessions: one entry per session; index with telemetry SessionNum
+SESSIONS = "Sessions"
+# SessionInfo.Sessions[].SessionType: Practice, Lone Qualify, Race, ...
+SESSION_TYPE = "SessionType"
+# SessionInfo.Sessions[].SessionName: display name, e.g. PRACTICE, QUALIFY, RACE
+SESSION_NAME = "SessionName"
+# Sessions[].SessionNum shares its key with telemetry SESSION_NUM above

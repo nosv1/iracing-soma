@@ -1,4 +1,16 @@
 ---
+WeekendInfo:
+ SessionID: 1001
+ SubSessionID: 2001
+ EventType: Race
+
+SessionInfo:
+ CurrentSessionNum: 0
+ Sessions:
+ - SessionNum: 0
+   SessionType: Race
+   SessionName: RACE
+
 DriverInfo:
  DriverCarIdx: 1
  Drivers:

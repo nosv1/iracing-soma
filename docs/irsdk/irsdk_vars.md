@@ -368,6 +368,19 @@ Observed in the same session, worth knowing:
 - `CarIdxLapDistPct`, `CarIdxLap`, `CarIdxTrackSurface` are `-1` for empty slots and for cars not
   in the world (player in garage).
 
+Observed 2026-10-19 (`recordings/20261019-175649`), iRacing moving the player from the practice
+server to the race server while connected:
+
+- `SessionID` (325244009 → 325242874), `SubSessionID` (89493421 → 89494186) and `EventType`
+  (Practice → Race) all changed. `SessionTick` reset (83673 → 59711) and `PlayerCarIdx` changed
+  (35 → 18).
+- `EventType` is the server's event, not the current session: the race server says `Race`
+  during its own Practice. Current session = `SessionInfo.Sessions[SessionNum].SessionType`.
+- Session lineup is per event: practice server had one session (0 Practice); race server had
+  0 Practice, 1 Lone Qualify, 2 Race. `SessionNum` is an index, not a fixed meaning.
+- On the first frame after the switch the YAML still described the practice server; the race
+  server's YAML arrived 54 ticks (~1 s) later.
+
 ### WeekendInfo
 
 | Variable | Description | Unit |

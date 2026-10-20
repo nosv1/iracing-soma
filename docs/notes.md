@@ -330,6 +330,43 @@ file. Open, his call:
 - His WIP uncommitted at sign-off: `main.py`, `car.py`, `handler.py`, `lap.py`, `session.py`,
   `test_laps.py` (incl. a `breakpoint()` in `handle_events`).
 
+### 2026-10-19: first live race, silent; server switch found
+
+- **Live run** with recording, `recordings/20261019-175649/` (gitignored, 437 MB, 210 YAML, all
+  valid JSON): practice server → race server → full race at Oulton, P20 → P7. Ran under a
+  scratchpad crash watcher (speaks only on non-zero exit); no crash, STOP exit 0. Short false
+  start `recordings/20261019-175431/` (6 MB) left for him to keep or delete. I removed the
+  `breakpoint()` from `handle_events` at his request (in his uncommitted `handler.py`).
+- **Soma never spoke** past "Speaker initialized". Two bugs, both his, both fix now:
+  1. iRacing moved him to the race server while connected: `SessionTick` reset (83673 → 59711)
+     and **`PlayerCarIdx` 35 → 18**. `update_session` never refreshed `player_car_idx`, so Soma
+     watched an empty slot all race. He has since added the refresh (uncommitted).
+  2. `len(car.laps) <= 1` counted sessions once `laps` became `{session_num: [Lap]}`; race-only
+     driving = 1 forever. Diagnostic replay with the idx forced to 18: all 11 race laps blocked
+     there, 9 of them had a gain to call. He changed it to `len(car.laps[car.session_num])`.
+- **Server identity** (in [irsdk_vars.md](irsdk/irsdk_vars.md)): `WeekendInfo.SessionID`,
+  `SubSessionID`, `EventType` all change on the switch. `EventType` is the server's event, not
+  the current session (race server says Race during its practice); current session =
+  `Sessions[SessionNum].SessionType`. Lineup is per event (practice server: 0 Practice; race
+  server: 0 Practice, 1 Lone Qualify, 2 Race). YAML lagged the telemetry switch by 54 ticks.
+- Constants added to `irsdk_vars.py` (mine); lap fixtures `laps`, `laps_p2`, `laps_p3` gained
+  `WeekendInfo` + `SessionInfo` (one Race session, SessionNum 0) so `Session.from_frame` can
+  read them.
+- **His WIP at sign-off (uncommitted):** `SessionType(StrEnum)` with `is_practice` /
+  `is_qualifying` / `is_race` (taught: value lookup `SessionType("Race")`, `_missing_` →
+  `UNKNOWN`; `@dataclass` on an enum makes it unhashable). `Session.from_frame` still reads
+  `frame[SESSION_ID]` / `frame[SESSION_TYPE]` top-level → `KeyError`; both are nested
+  (`WeekendInfo`, `SessionInfo.Sessions[SessionNum]`). Tests fail until that's fixed.
+- Noted, not fixed: cars from the old server persist in `session.cars` (idx reuse across
+  servers); recorder `index.json` keyed by tick alone collides across a tick reset (today's two
+  servers didn't collide only because their ticks fell on different steps of the 6-tick spacing).
+- Ideas: race-control voice for session/flag changes (`en_US-norman-medium`, downloaded to
+  `voices/`; heartbeat that Soma is alive; absorb flags present on connect; `sounddevice.play`
+  is one global stream, two `Speaker` threads cut each other off). Backlog: voice
+  personalities, tester warnings (log file + spoken once + shutdown list).
+- pytest warnings (57): `sounddevice` uses `.shape =`, deprecated in NumPy 2.5. Not ours; gone
+  once tests use a fake speaker.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the

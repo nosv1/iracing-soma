@@ -52,6 +52,24 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
     filter is array in, array out (SciPy has the filters). Pre-render the click once.
   - Watch for added latency (spotter calls later), and readability: radio filtering makes
     speech harder to understand, so keep it mild or make it switchable.
+- **Voice personalities**: build a voice from personality traits (calm/excitable, terse/chatty,
+  accent), maybe randomized per session.
+  - Piper can't take a description; a trait has to map to something it can do: which voice
+    model, `SynthesisConfig` (`length_scale` = speed, `noise_scale` / `noise_w_scale` =
+    variation, `volume`), and which wording the templates use. All installed voices are
+    single-speaker, so `speaker_id` adds nothing yet.
+  - Wording is the larger part: terse vs chatty means a second set of templates, or LLM phrasing.
+  - Engines that take a text description of the voice exist (e.g. Parler-TTS); heavier, GPU.
+  - Ties to the race-control voice (`en_US-norman-medium`) and radio effects.
+- **Tester warnings**: when Soma sees something it doesn't handle, I need to know, even in VR.
+  First case: an unknown `SessionType` (enum `_missing_` → `UNKNOWN` + warning).
+  - All three: log file (WARNING+, in the run's recording folder so it replays), spoken once,
+    and a list at shutdown ("2 unknown session types: Warmup, Heat").
+  - Speak once per value (set of already-announced), not per frame. Short, distinct prefix
+    ("Debug: ..."), maybe its own voice.
+  - One general path, not a special case per unknown: pit-lane start lap counts, `-1` flicker,
+    server switch are next candidates.
+  - Switchable (`--debug-voice`); off by default if it ever ships.
 - **Config file**: settings out of `main.py`, starting with recorded fps.
 - **Ruff N802 on `iRacing` names** (`recorder.py`): keep the casing and silence ruff. Either a
   per-line `# noqa: N802`, or once in `pyproject.toml` under `[tool.ruff.lint.pep8-naming]`.
