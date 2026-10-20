@@ -78,3 +78,15 @@ def laps_session(snapshots_with_laps_iterator: Iterator[Snapshot]) -> Session:
         session = handle_frame(session, snapshot)
     assert session is not None
     return session
+
+
+############       ROLLING START       ############
+
+
+@pytest.fixture(scope="module")
+def rolling_start_session(recordings_path: Path) -> Session:
+    session: Session | None = None
+    for snapshot in Loader(recordings_path / "rolling_start").snapshots():
+        session = handle_frame(session, snapshot)
+    assert session is not None
+    return session
