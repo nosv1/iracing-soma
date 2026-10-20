@@ -49,6 +49,6 @@ class CaughtFact(EventFact):
         # i know this is robotic, these to_str methods are mainly for testing
         # event fact -> to_json (or to str) -> to_llm
         return (
-            f"Caught P{self.pos} by {round(self.gain_s_as_positive, 1)} seconds."
+            f"Caught P{self.pos} by {round(self.gain_s_as_positive, 1)} seconds\n"
             f"{self.gap_fact.to_str()}"
         )
