@@ -74,3 +74,9 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
 - **Ruff N802 on `iRacing` names** (`recorder.py`): keep the casing and silence ruff. Either a
   per-line `# noqa: N802`, or once in `pyproject.toml` under `[tool.ruff.lint.pep8-naming]`.
   A noqa comment above the line didn't work; ask why.
+- **Other cars' flags** (`CarIdxSessionFlags`): per-car flags for every car: meatball
+  (`repair`), black flag warning (`furled`), pit service open (`servicible`). Never holds track
+  flags (green, yellow, ...); those are only in `SessionFlags`. The player's per-car bits match
+  `SessionFlags` every frame (10-20 race: 11 other cars flagged at some point).
+  - Context for the caught call: "P5 has the meatball", damaged and slow, catchable.
+  - May explain outlier catches (the 7 s one): check the caught car's flags on that lap.
