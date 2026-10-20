@@ -2,7 +2,6 @@ import argparse
 import logging
 import time
 from pathlib import Path
-from queue import Queue
 
 from piper import PiperVoice
 
