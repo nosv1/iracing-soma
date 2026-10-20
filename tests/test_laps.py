@@ -63,3 +63,11 @@ def test_caught_call(laps_p3_loader: Loader) -> None:
     assert tick_990_caught_fact.gain_s_as_positive == pytest.approx(0.4)
     assert tick_990_caught_fact.gap_fact.pos == 2
     assert tick_990_caught_fact.gap_fact.gap_s_as_positive == pytest.approx(0.58)
+
+
+def test_lap_time_from_crossings() -> None:
+    pytest.fail("TODO: laps fixture, 2nd lap -> lap_time_s 4.0 (car 0), 50/13 (car 1)")
+
+
+def test_first_lap_has_no_lap_time() -> None:
+    pytest.fail("TODO: no crossing before lap 1 -> lap_time_s None, not -1 or stale")
