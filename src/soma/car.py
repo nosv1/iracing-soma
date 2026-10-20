@@ -123,9 +123,10 @@ class Car:
             - other.laps[self.session_num][lap_idx_to_compare].estimated_timestamp
         )
 
-    def did_start_new_lap(self, old_car: Car) -> bool:
+    def did_finish_lap(self, old_car: Car) -> bool:
         return (
-            old_car.event_laps_completed < self.event_laps_completed
+            old_car.event_laps_completed >= 0
+            and old_car.event_laps_completed < self.event_laps_completed
             and old_car.lap_dist > self.lap_dist
         )
 
@@ -151,7 +152,7 @@ class Car:
     def handle_frame(self, frame: Snapshot, new_car: Car):
         self.events = []
 
-        if new_car.did_start_new_lap(self):
+        if new_car.did_finish_lap(self):
             self.handle_new_lap(frame, new_car)
 
         self.update_car(new_car)
