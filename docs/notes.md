@@ -384,14 +384,50 @@ file. Open, his call:
   position for the line. Taught: dataclass inheritance (parent fields first, default-ordering
   `TypeError`, `kw_only`), `ClassVar`.
 - Ruff: `extend-ignore-names = ["*iRacing*"]` (his commit `1244752`); 4 E501 left.
-- **WIP at sign-off (uncommitted):** `main.py`, `handler.py`, `test_laps.py`, `do_stuff.py`,
-  `event_fact.py`. `test_caught_call` red: `0.3999999999999999 != 0.4` (float `==`). Fix: approx
-  per float field (approx doesn't do nested dicts, he checked). Noted: custom `__eq__` on both
-  facts duplicates the dataclass one and raises `AttributeError` across types; `do_stuff`
-  `session` param should be `Session | None` (mypy); `Packet` wraps only `Session`; check the
-  car-ahead `GapFact` isn't a duplicate when the car ahead is the caught car.
+- Morning WIP landed (`b1cd935`): `test_caught_call` asserts per field with approx. Noted, open:
+  `do_stuff` `session` param vs mypy; `Packet` wraps only `Session`; possible duplicate
+  car-ahead `GapFact` when the car ahead is the caught car.
 - Open: hub spec ([ideas/iracing-race-engineer.md](https://github.com/nosv1/nosv1/blob/main/ideas/iracing-race-engineer.md))
   still describes the live code fallback (dropped 10-13); offered to fix, no answer yet.
+
+### 2026-10-20 (midday): Soma speaks live; race start, lap times
+
+- **Two live races, Soma speaking** (recording on): `recordings/20261020-112829/` (14,830 frames)
+  and `recordings/20261020-120232/` (9,058 frames, wheel came off; also the source of the
+  `rolling_start` fixture). Both all valid JSON, STOP exit 0. He liked the speed after the
+  line ("fast beats slow"). STOP file is `recordings/STOP` (`main.py` logs the path), not the run
+  folder.
+- **Bad calls heard:** "Caught P8 by 60.9 s", "Caught P9 by 7.4 s" (race 1; cause unknown, stubs
+  in `test_caught_outliers.py`), "Caught P2 by 1.9 s" (race 2, cause found: the rolling-start
+  crossing counted as a lap).
+- **Race start, his fix:** `CarIdxLapCompleted` is −1 until the car first crosses; at the green
+  it goes −1 → 0 with a pct wrap. He guarded on the old count ≥ 0 (renamed to "did finish lap").
+  Also ignores tows / not-in-world flicker (−1 → n). `CarIdxLapCompleted` **resets per session**
+  (checked in 3 recordings); his `event_laps_completed` name is misleading.
+- **Lap times, his:** from his own crossings (this − previous timestamp); lap 1 = `None`.
+  `CarIdxLastLapTime` was read at the crossing and was one lap stale (posts 1–2 s late, 10-18).
+  His timings match official: median 0.0000 s, ~85% within 10 ms **at 10 Hz** (his comment said
+  60 Hz; check it was fixed). Official lap 1 of a rolling start (72.01) ≠ his crossing diff
+  (65.2): iRacing seems to time it from about the green; unverified.
+- **Fixture `rolling_start`** (mine, `4d2adec`): race session 70–230 s, only the frame keys
+  `src/soma` reads, 3.5 MB from 184 MB; laps match the full recording for all 12 cars.
+  `tests/recordings/trim_recording.py` regenerates it; [tests/recordings/README.md](../tests/recordings/README.md)
+  lists fixtures + the command. Rerun it when code reads a new var (e.g. `SessionFlags`).
+- **Damage, answered:** on-track damage shows as `EngineWarnings` 0x80 / 0x100 (mandatory /
+  optional repair), ~3 s before the incident count rose. `PitRepairLeft` / `PitOptRepairLeft`
+  stayed 0.0 on track and on pit road; maybe only in the box (recording stopped before it).
+- **HUD goal (his):** remove the whole HUD; each element is a call that speaks up or is asked.
+  [hud.md](hud.md) (mine) lists them with source vars; priority + done are his. Vars added to
+  `irsdk_vars.py`, all checked present in a real frame.
+- **Flags, started (his):** `SessionFlags` is a bitfield; test bits with `&`, "turned on" =
+  `new & ~old`. His plan: a `SessionFlag(IntFlag)` from the `irsdk.Flags` values (unknown bits
+  are kept, no `_missing_` needed). `CarIdxSessionFlags` holds only per-car flags (meatball,
+  black-flag warning, servicible) for every car, never track flags; player's bits mirror
+  `SessionFlags` (backlog).
+- Tests: stubs for delta-gap edges, server switch, YAML ticks, race start, outliers. Safety
+  rating 2.36: sports car races, survive lap 1. Audio: set the headset as default output
+  before starting Soma; switching mid-run untested (mine to test).
+- Otto: Gazebo Fuel back; Depot model cached in WSL, setup gotcha committed there (`e015156`).
 
 ## Next
 
@@ -400,8 +436,9 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
 
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
-   done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Next:** drop
-   the `breakpoint()`, commit the session/positions fixes, `lap_time_s` lag, then live run.
+   done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Spoke live
+   10-20.** **Next:** flags (race control voice, `SessionFlag`), then find the cause of the 60 s /
+   7 s catches in `20261020-112829` (replay at those calls).
    Old plan, for reference: fix the
    0-laps guard, then a template voice line for the
    delta (load voice once; speaking blocks the loop; decide when it fires). Mini sectors after the line works. Keep it pure (snapshots in, event
