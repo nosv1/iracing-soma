@@ -29,7 +29,7 @@ class SessionType(StrEnum):
 
     @classmethod
     def _missing_(cls, value):
-        logger.warning(f"UNKNOWN SESSION TYPE: {value:!r}")
+        logger.warning(f"UNKNOWN SESSION TYPE: {value!r}")
         return cls.UNKNOWN
 
     def is_practice(self) -> bool:
