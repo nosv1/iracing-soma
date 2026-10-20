@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass, field
-from enum import StrEnum
 
 from soma.car import Car
 from soma.driver import Driver
@@ -16,30 +15,9 @@ from soma.irsdk_vars import (
     WEEKEND_INFO,
 )
 from soma.loader import Snapshot
+from soma.session_type import SessionType
 
 logger = logging.getLogger(__file__)
-
-
-class SessionType(StrEnum):
-    PRACTICE = "Practice"
-    LONE_QUALIFY = "Lone Qualify"
-    OPEN_QUALIFY = "Open Qualify"
-    RACE = "Race"
-    UNKNOWN = "Unknown"
-
-    @classmethod
-    def _missing_(cls, value):
-        logger.warning(f"UNKNOWN SESSION TYPE: {value!r}")
-        return cls.UNKNOWN
-
-    def is_practice(self) -> bool:
-        return self in {SessionType.PRACTICE}
-
-    def is_qualifying(self) -> bool:
-        return self in {SessionType.LONE_QUALIFY, SessionType.OPEN_QUALIFY}
-
-    def is_race(self) -> bool:
-        return self in {SessionType.RACE}
 
 
 @dataclass
@@ -53,6 +31,10 @@ class Session:
     cars: dict[int, Car] = field(default_factory=dict)  # CarIdx, Car
     drivers: dict[int, Driver] = field(default_factory=dict)  # CarIdx, Driver
     positions: dict[int, int] = field(default_factory=dict)  # position, CarIdx
+
+    @property
+    def player_car(self) -> Car:
+        return self.cars[self.player_car_idx]
 
     @classmethod
     def from_frame(cls, frame: Snapshot) -> Session:
