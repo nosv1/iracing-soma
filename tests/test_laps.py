@@ -53,11 +53,12 @@ def test_caught_call(laps_p3_loader: Loader) -> None:
         session = handle_frame(session, snapshot)
         event_facts = handle_events(session)
         if session.session_tick == 990:
-            tick_990_caught_fact = event_facts[0]
             assert len(event_facts) == 1
-            assert isinstance(tick_990_caught_fact, CaughtFact)
+            assert isinstance(event_facts[0], CaughtFact)
+            tick_990_caught_fact = event_facts[0]
             break
 
+    assert isinstance(tick_990_caught_fact, CaughtFact)
     assert tick_990_caught_fact.pos == 2
     assert tick_990_caught_fact.gain_s_as_positive == pytest.approx(0.4)
     assert tick_990_caught_fact.gap_fact.pos == 2
