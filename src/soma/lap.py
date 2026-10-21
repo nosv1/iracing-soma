@@ -1,11 +1,6 @@
 from dataclasses import dataclass
 
-from soma.irsdk_vars import (
-    CAR_IDX_LAP_COMPLETED,
-    CAR_IDX_LAST_LAP_TIME,
-    SESSION_NUM,
-    SESSION_TIME,
-)
+from soma.irsdk_vars import CAR_IDX_LAP_COMPLETED, SESSION_NUM, SESSION_TIME
 from soma.snapshot import Snapshot
 
 
