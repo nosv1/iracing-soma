@@ -53,10 +53,14 @@ def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
     return next_stop_check
 
 
-def loop_recording(loader: Loader, speaker: Speaker) -> None:
+def loop_recording(stop_file: Path, loader: Loader, speaker: Speaker) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
     for frame in loader.snapshots():
+        do_stop_loop: bool | float = check_stop_loop(0.0, stop_file)
+        if isinstance(do_stop_loop, bool) and do_stop_loop:
+            stop_file.unlink(missing_ok=True)
+            break
         packet = do_stuff(session=session, frame=frame, speaker=speaker)
         session = packet.session
 
@@ -127,7 +131,7 @@ def main(recording_destination: Path | None, recording_to_load: Path | None) -> 
         # loop recording
         if recording_to_load is not None:
             loader = Loader(recording_path=recordings_dir / recording_to_load)
-            loop_recording(loader, speaker)
+            loop_recording(stop_file, loader, speaker)
 
         # loop iracing stream
         else:
