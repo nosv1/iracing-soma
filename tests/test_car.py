@@ -1,5 +1,3 @@
-import pytest
-
 from soma.car import Car
 from soma.lap import Lap
 
