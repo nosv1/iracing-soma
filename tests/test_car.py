@@ -44,7 +44,7 @@ def test_delta_gap_no_laps_either_car() -> None:
 
 def test_delta_gap_self_has_no_laps() -> None:
     car_1 = create_car(idx=1, position=1)
-    car_1.laps = create_laps(car=car_1, start_lap=1, num_laps=1)
+    car_1.laps = create_laps(car=car_1, start_lap=1, num_laps=3)
     car_2 = create_car(idx=2, position=2)
     assert car_2.get_gap_to(car_1) is None
     assert car_1.get_gap_to(car_2) is None
