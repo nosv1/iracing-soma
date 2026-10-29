@@ -1,10 +1,11 @@
 import pytest
 
+from soma.session_type import SessionType
 
-def test_unknown_session_type():
-    pytest.fail(
-        "TODO: an unknown session type string should become SessionType.UNKNOWN"
-    )
+
+def test_unknown_session_type() -> None:
+    unknown_session = SessionType("TEST_UNKNOWN")
+    assert unknown_session == SessionType.UNKNOWN
 
 
 def test_player_car_idx_follows_server_switch() -> None:
