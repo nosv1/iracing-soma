@@ -68,6 +68,9 @@ class Car:
         if self.session_num not in other.laps:
             return 0
 
+        if self.session_num not in self.laps:
+            return 0
+
         return min(len(self.laps[self.session_num]), len(other.laps[self.session_num]))
 
     def get_delta_gap_after_lap(self, other: Car) -> float | None:
