@@ -33,6 +33,13 @@ class Car:
     # cleared then appended to in handle frame
     events: list[Event] = field(default_factory=list)
 
+    @property
+    def lap_num(self) -> int:
+        """ returns current lap number of current session"""
+        if self.session_num in self.laps:
+            return len(self.laps[self.session_num]) + 1
+        return 1
+
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, Car)
         return self.idx == other.idx
