@@ -37,8 +37,15 @@ def cli() -> None:
         metavar="DIR",
         help="directory holding the recording to load (probably timestamped)",
     )
+    parser.add_argument(
+        "-s",
+        "--speaker",
+        default=True,
+        type=bool,
+        help="whether to use speaker thread or not",
+    )
     args = parser.parse_args()
-    main(args.record, args.load)
+    main(args.record, args.load, args.speaker)
 
 
 def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
@@ -113,7 +120,11 @@ def loop_iracing_stream(
             recorder.stop()
 
 
-def main(recording_destination: Path | None, recording_to_load: Path | None) -> None:
+def main(
+    recording_destination: Path | None,
+    recording_to_load: Path | None,
+    use_speaker_thread: bool,
+) -> None:
     # creating this file stops the loop cleanly (finally still flushes the recorder)
     stop_file = (recording_destination or Path.cwd()) / "STOP"
     stop_file.unlink(
@@ -125,7 +136,7 @@ def main(recording_destination: Path | None, recording_to_load: Path | None) -> 
     recordings_dir = cur_dir / "recordings"
     voices_dir = cur_dir / "voices"
     voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
-    speaker = Speaker(voice=PiperVoice.load(voice_path))
+    speaker = Speaker(voice=PiperVoice.load(voice_path), use_thread=use_speaker_thread)
 
     try:
         # loop recording
