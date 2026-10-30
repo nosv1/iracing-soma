@@ -1,8 +1,12 @@
+import logging
+
 from soma.event import Event
 from soma.event_fact import CaughtFact, EventFact, GapFact
 from soma.session import Session
 from soma.snapshot import Snapshot
 from soma.speaker import Speaker
+
+logger = logging.getLogger(__file__)
 
 
 def handle_event_facts(event_facts: list[EventFact], speaker: Speaker):
@@ -30,7 +34,6 @@ def handle_events(session: Session) -> list[EventFact]:
             if car.position <= 1:
                 continue
             # is not p1
-
             delta_gaps = car.get_delta_gaps_ahead(session.cars, session.positions)
             if len(delta_gaps) == 0:
                 continue
@@ -42,19 +45,18 @@ def handle_events(session: Session) -> list[EventFact]:
             if largest_delta_gap.delta_gap <= 0:
                 gap_to_largest_delta_gap_car = car.get_gap_to(largest_delta_gap_car)
                 if gap_to_largest_delta_gap_car is not None:
-                    event_facts.append(
-                        CaughtFact(
-                            # caught slow guy
+                    caught_fact = CaughtFact(
+                        # caught slow guy
+                        pos=largest_delta_gap_car.position,
+                        # by seconds
+                        gain_s_as_positive=abs(largest_delta_gap.delta_gap),
+                        # current gap
+                        gap_fact=GapFact(
                             pos=largest_delta_gap_car.position,
-                            # by seconds
-                            gain_s_as_positive=abs(largest_delta_gap.delta_gap),
-                            # current gap
-                            gap_fact=GapFact(
-                                pos=largest_delta_gap_car.position,
-                                gap_s_as_positive=abs(gap_to_largest_delta_gap_car),
-                            ),
-                        )
+                            gap_s_as_positive=abs(gap_to_largest_delta_gap_car),
+                        ),
                     )
+                    event_facts.append(caught_fact)
                 if car_ahead.idx != largest_delta_gap_car.idx:
                     gap_to_car_ahead = car.get_gap_to(car_ahead)
                     if gap_to_car_ahead is not None:
