@@ -17,12 +17,9 @@ logging.basicConfig(level=logging.INFO)
 def test_lap_timestamps(laps_session: Session, idx: int, expected: list[float]) -> None:
     car_0 = laps_session.cars[0]
     car_1 = laps_session.cars[1]
-    assert (
-        len(car_0.laps[car_0.session_num]) == 2
-        and len(car_1.laps[car_1.session_num]) == 2
-    )
+    assert len(car_0.laps[0].values()) == 2 and len(car_1.laps[0].values()) == 2
     actual_timestamps = []
-    for lap in laps_session.cars[idx].laps[laps_session.cars[idx].session_num]:
+    for lap in laps_session.cars[idx].laps[laps_session.cars[idx].session_num].values():
         actual_timestamps.append(lap.estimated_timestamp)
     assert actual_timestamps == pytest.approx(expected)
 
@@ -68,15 +65,15 @@ def test_caught_call(laps_p3_loader: Loader) -> None:
 def test_lap_time_from_crossings(laps_session: Session) -> None:
     car_0_laps = laps_session.cars[0].laps[0]
     car_1_laps = laps_session.cars[1].laps[0]
-    assert car_0_laps[1].lap_time_s == pytest.approx(4.0)
-    assert car_1_laps[1].lap_time_s == pytest.approx(50 / 13)
+    assert car_0_laps[6].lap_time_s == pytest.approx(4.0)
+    assert car_1_laps[6].lap_time_s == pytest.approx(50 / 13)
 
 
 def test_first_lap_has_no_lap_time(rolling_start_session: Session) -> None:
     player_race_laps = rolling_start_session.player_car.laps[
         rolling_start_session.player_car.session_num
     ]
-    assert player_race_laps[0].lap_time_s is None
+    assert player_race_laps[1].lap_time_s is None
 
 
 @pytest.mark.xfail(strict=True, reason="split crossing, parked: low impact, handled")
