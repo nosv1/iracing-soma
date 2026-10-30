@@ -10,6 +10,7 @@ Fixtures in the recorder's format (`frames.txt` + `yaml_history/`), read with `L
 | `laps_p2` | `laps` with the player at P2 | hand |
 | `laps_p3` | 3 cars, player P3, sorted delta order differs from position order | hand |
 | `rolling_start` | 10-20 race, 70–230 s: rolling start through the end of lap 2 | `trim_recording.py` |
+| `split_crossing` | 10-20 race 1, 550–690 s: car 3 flickers not-in-world across its lap 8 crossing; wrap and count arrive 1.6 s apart | `trim_recording.py` |
 
 ## Cutting a fixture from a real recording
 
@@ -28,6 +29,14 @@ uv run python tests/recordings/trim_recording.py <full recording> <fixture dir> 
 uv run python tests/recordings/trim_recording.py \
     recordings/20261020-120232 tests/recordings/rolling_start \
     --session 2 --start 70 --end 230
+```
+
+`split_crossing`:
+
+```
+uv run python tests/recordings/trim_recording.py \
+    recordings/20261020-112829 tests/recordings/split_crossing \
+    --session 2 --start 550 --end 690
 ```
 
 **Regenerate when code reads a new variable** (a `KeyError` in a test on this fixture).

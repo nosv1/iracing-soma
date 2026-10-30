@@ -77,3 +77,13 @@ def test_first_lap_has_no_lap_time(rolling_start_session: Session) -> None:
         rolling_start_session.player_car.session_num
     ]
     assert player_race_laps[0].lap_time_s is None
+
+
+@pytest.mark.xfail(strict=True, reason="split crossing, parked: low impact, handled")
+def test_crossing_split_across_frames_counts_lap() -> None:
+    # recording: tests/recordings/split_crossing (car 3 flickers; pct wraps ~617.1 s,
+    #   CarIdxLapCompleted 7 -> 8 only at 618.767 s)
+    pytest.fail(
+        "TODO: car 3 has laps 7, 8, 9; lap 8 lap_time_s ~ 60.635, lap 9 ~ 61.526 "
+        "(official CarIdxLastLapTime)"
+    )

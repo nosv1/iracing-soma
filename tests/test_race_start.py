@@ -14,8 +14,10 @@ def test_start_crossing_is_not_a_lap(rolling_start_session: Session) -> None:
 
 
 def test_first_lap_counts_after_start() -> None:
+    # recording: tests/recordings/rolling_start
     pytest.fail("TODO: start crossing, then 0 -> 1 + wrap -> 1 lap completed")
 
 
 def test_no_caught_call_after_first_lap() -> None:
+    # recording: tests/recordings/rolling_start
     pytest.fail("TODO: green, then 1 full lap -> no CaughtFact (needs 2 full laps)")
