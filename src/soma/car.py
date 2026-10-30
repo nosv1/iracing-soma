@@ -5,11 +5,13 @@ from soma.irsdk_vars import (
     CAR_IDX_LAP_COMPLETED,
     CAR_IDX_LAP_DIST_PCT,
     CAR_IDX_POSITION,
+    CAR_IDX_TRACK_SURFACE,
     SESSION_NUM,
     SESSION_TIME,
 )
 from soma.lap import Lap
 from soma.loader import Snapshot
+from soma.track_surface import TrackSurface
 
 
 @dataclass
@@ -22,23 +24,18 @@ class CarDeltaGap:
 class Car:
     session_time: float
     session_num: int
+    track_surface: TrackSurface
     idx: int
     position: int
     lap_dist: float
     # number of laps completed across sessions for the same event
     event_laps_completed: int
-    # {session_num: [Lap]}
-    laps: dict[int, list[Lap]] = field(default_factory=dict)
+    # {session_num: dict[lap_num: Lap]}
+    prev_session_lap_num: int
+    laps: dict[int, dict[int, Lap]] = field(default_factory=dict)
     # list of events for the current frame
     # cleared then appended to in handle frame
     events: list[Event] = field(default_factory=list)
-
-    @property
-    def lap_num(self) -> int:
-        """ returns current lap number of current session"""
-        if self.session_num in self.laps:
-            return len(self.laps[self.session_num]) + 1
-        return 1
 
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, Car)
@@ -49,10 +46,12 @@ class Car:
         return Car(
             session_time=frame[SESSION_TIME],
             session_num=frame[SESSION_NUM],
+            track_surface=TrackSurface(frame[CAR_IDX_TRACK_SURFACE][idx]),
             idx=idx,
             position=position,
             lap_dist=frame[CAR_IDX_LAP_DIST_PCT][idx],
             event_laps_completed=frame[CAR_IDX_LAP_COMPLETED][idx],
+            prev_session_lap_num=0,
         )
 
     @classmethod
@@ -65,6 +64,9 @@ class Car:
         return cars
 
     def update_car(self, new_car: Car) -> None:
+        if new_car.track_surface.is_not_in_world():
+            return
+
         self.session_time = new_car.session_time
         self.session_num = new_car.session_num
         self.position = new_car.position
@@ -78,7 +80,14 @@ class Car:
         if self.session_num not in self.laps:
             return 0
 
-        return min(len(self.laps[self.session_num]), len(other.laps[self.session_num]))
+        prev_shared_lap = min(self.prev_session_lap_num, other.prev_session_lap_num)
+        if (
+            prev_shared_lap not in self.laps[self.session_num]
+            or prev_shared_lap not in other.laps[self.session_num]
+        ):
+            return 0
+
+        return prev_shared_lap
 
     def get_delta_gap_after_lap(self, other: Car) -> float | None:
         """\\+ delta gap -> gap grew,  \\- delta gap -> gap decreased
@@ -89,16 +98,21 @@ class Car:
         lap_to_compare = self.get_last_shared_completed_lap(other)
         if lap_to_compare <= 1:
             return None
+        prev_lap = lap_to_compare - 1
 
-        lap_idx_to_compare = lap_to_compare - 1
+        if (
+            prev_lap not in self.laps[self.session_num]
+            or prev_lap not in other.laps[self.session_num]
+        ):
+            return None
 
         gap_before = (
-            self.laps[self.session_num][lap_idx_to_compare - 1].estimated_timestamp
-            - other.laps[self.session_num][lap_idx_to_compare - 1].estimated_timestamp
+            self.laps[self.session_num][prev_lap].estimated_timestamp
+            - other.laps[self.session_num][prev_lap].estimated_timestamp
         )
         gap_after = (
-            self.laps[self.session_num][lap_idx_to_compare].estimated_timestamp
-            - other.laps[self.session_num][lap_idx_to_compare].estimated_timestamp
+            self.laps[self.session_num][lap_to_compare].estimated_timestamp
+            - other.laps[self.session_num][lap_to_compare].estimated_timestamp
         )
 
         return gap_after - gap_before
@@ -126,11 +140,9 @@ class Car:
         if lap_to_compare <= 1:
             return None
 
-        lap_idx_to_compare = lap_to_compare - 1
-
         return (
-            self.laps[self.session_num][lap_idx_to_compare].estimated_timestamp
-            - other.laps[self.session_num][lap_idx_to_compare].estimated_timestamp
+            self.laps[self.session_num][lap_to_compare].estimated_timestamp
+            - other.laps[self.session_num][lap_to_compare].estimated_timestamp
         )
 
     def did_finish_lap(self, old_car: Car) -> bool:
@@ -145,9 +157,9 @@ class Car:
 
         prev_lap: Lap | None = None
         if self.session_num not in self.laps:
-            self.laps[self.session_num] = []
+            self.laps[self.session_num] = {}
         else:
-            prev_lap = self.laps[self.session_num][-1]
+            prev_lap = self.laps[self.session_num][self.prev_session_lap_num]
 
         estimated_lap_timestamp = Lap.estimate_lap_timestamp(
             session_time=new_car.session_time,
@@ -162,9 +174,11 @@ class Car:
         else:
             estimated_lap_time = None
 
-        self.laps[self.session_num].append(
-            Lap.from_frame(frame, self.idx, estimated_lap_timestamp, estimated_lap_time)
+        lap = Lap.from_frame(
+            frame, self.idx, estimated_lap_timestamp, estimated_lap_time
         )
+        self.laps[self.session_num][lap.lap_number] = lap
+        self.prev_session_lap_num = lap.lap_number
 
     def handle_frame(self, frame: Snapshot, new_car: Car):
         self.events = []
