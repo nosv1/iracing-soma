@@ -429,6 +429,19 @@ file. Open, his call:
   before starting Soma; switching mid-run untested (mine to test).
 - Otto: Gazebo Fuel back; Depot model cached in WSL, setup gotcha committed there (`e015156`).
 
+### 2026-11-11: SR planning (no code)
+
+- Goal (his): formula SR to 4.00 by Thursday 11-12 → fast-track promotion to C. Fast track needs
+  4.00 **and** completed MPR (count not stated in iRacing's support article; check).
+- Facts looked up: SR is per license (oval / sports car / formula / dirt split), so corners only
+  count in the license being raised. Session multipliers scale corners **and** incidents: race 1.0,
+  time trial 0.35 (iRacing support); lone qual / warm-up ~0.35, qual 0.5 per secondary sources,
+  conflicting; open practice doesn't count. Full table is in the Sporting Code, not found online.
+- His incidents come from contact, mostly lap 1. Choice: FF1600 Rookie (12 min, every 30 min,
+  makes every slot) over F4 (15 min, but ~45 min cycle), starting from pit lane to skip lap 1.
+- Soma tie-in, unasked: incidents by lap from `PlayerCarMyIncidentCount` in his recordings would
+  answer "is lap 1 where my SR goes".
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
