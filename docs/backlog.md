@@ -8,6 +8,8 @@ Chris's ideas, captured raw. Not prioritized, not specced; expand when picked up
 - **Line report**: gap ahead, gap behind, time left, in one line at the start/finish line. These
   are what I looked for first after zoning out during a race (11-11).
   - Open: every lap, or on request? Soma can't tell when I've zoned out.
+  - Time left gets said as laps, the same number the race-distance milestones use. In a timed
+    race that's laps computed from time left (11-11).
 - **Which split am I in**: answer on request.
 - **Race-distance milestones**: call out when laps left halves: halfway, quarter to go, and so
   on.

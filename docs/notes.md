@@ -450,7 +450,10 @@ file. Open, his call:
 - Logged in [hud.md](hud.md) and [backlog.md](backlog.md) ("line report"). Overlap: the caught
   call already speaks at the line, but only about the delta, not the gap itself or the time.
 - Open, his call: every lap, or only when asked ("where am I")? Soma can't tell when he zones out.
-  Also whether "time left" means time or laps in a timed race.
+- Time vs laps, his answer: the race-distance milestones (half, quarter, 5 to go, ...) are said
+  in laps, and in a timed race those laps come from time left, so it needs math. His to model.
+  The traps are already in the backlog: the estimate moves, so a milestone can fire twice or get
+  skipped. Check what `SessionLapsRemainEx` already gives first.
 
 ## Next
 
