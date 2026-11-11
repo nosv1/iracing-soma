@@ -442,6 +442,16 @@ file. Open, his call:
 - Soma tie-in, unasked: incidents by lap from `PlayerCarMyIncidentCount` in his recordings would
   answer "is lap 1 where my SR goes".
 
+### 2026-11-11 (evening): what he looks for at the line
+
+- From a race tonight (not recorded): he'd zoned out while lapping. When he came back and crossed
+  the line, his first look was **gap ahead, gap behind, time left**. Those three, together, are
+  what he wants first when his attention comes back to the race.
+- Logged in [hud.md](hud.md) and [backlog.md](backlog.md) ("line report"). Overlap: the caught
+  call already speaks at the line, but only about the delta, not the gap itself or the time.
+- Open, his call: every lap, or only when asked ("where am I")? Soma can't tell when he zones out.
+  Also whether "time left" means time or laps in a timed race.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the

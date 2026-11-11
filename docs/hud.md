@@ -23,6 +23,12 @@ Mode is my first guess; priority and "done" are yours.
 | Engine warnings (water temp, oil pressure) | `EngineWarnings` (bitfield) | speaks up | | |
 | Track / air temp | `TrackTempCrew`, `AirTemp` | asked | | |
 
+## What he looks at first
+
+11-11 race: after zoning out mid-race, the first thing he checked at the line was **gap ahead,
+gap behind, time left**, all three together. That's a priority signal for those rows, and a hint
+they belong in one call, not three.
+
 ## DRE calls not covered above
 
 <!-- calls DRE makes that you'd miss; add as you notice them -->
