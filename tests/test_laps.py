@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from soma.event_fact import CaughtFact
-from soma.handler import handle_events, handle_frame
+from soma.handler import handle_car_events, handle_frame
 from soma.loader import Loader
 from soma.session import Session
 
@@ -48,7 +48,7 @@ def test_caught_call(laps_p3_loader: Loader) -> None:
     tick_990_caught_fact: CaughtFact | None = None
     for snapshot in laps_p3_loader.snapshots():
         session = handle_frame(session, snapshot)
-        event_facts = handle_events(session)
+        event_facts = handle_car_events([], session)
         if session.session_tick == 990:
             assert len(event_facts) == 1
             assert isinstance(event_facts[0], CaughtFact)
