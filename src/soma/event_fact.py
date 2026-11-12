@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import ClassVar
 
+from soma.session_flag import SessionFlag
+
 
 @dataclass
 class EventFact:
@@ -14,19 +16,31 @@ class EventFact:
 
 
 @dataclass
+class FlagsChangedFact(EventFact):
+    event: ClassVar[str] = "flags is now on"
+    new_flag: SessionFlag
+
+    def to_json(self) -> dict:
+        return {"event": self.event, "flag": self.new_flag.name}
+
+    def to_str(self) -> str:
+        return f"{self.new_flag.name} flag"
+
+
+@dataclass
 class GapFact(EventFact):
     event: ClassVar[str] = "gap to"
     pos: int
     gap_s_as_positive: float
 
-    def to_json(self):
+    def to_json(self) -> dict:
         return {
             "event": self.event,
             "position": self.pos,
             "gap_s": self.gap_s_as_positive,
         }
 
-    def to_str(self):
+    def to_str(self) -> str:
         return f"Gap to P{self.pos} is {round(self.gap_s_as_positive, 1)} seconds"
 
 
@@ -37,7 +51,7 @@ class CaughtFact(EventFact):
     gain_s_as_positive: float
     gap_fact: GapFact
 
-    def to_json(self):
+    def to_json(self) -> dict:
         return {
             "event": self.event,
             "position": self.pos,
@@ -45,7 +59,7 @@ class CaughtFact(EventFact):
             "gap_fact": self.gap_fact.to_json(),
         }
 
-    def to_str(self):
+    def to_str(self) -> str:
         # i know this is robotic, these to_str methods are mainly for testing
         # event fact -> to_json (or to str) -> to_llm
         return (

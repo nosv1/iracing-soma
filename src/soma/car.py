@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from soma.event import Event
+from soma.event import EventTypes
 from soma.irsdk_vars import (
     CAR_IDX_LAP_COMPLETED,
     CAR_IDX_LAP_DIST_PCT,
@@ -35,7 +35,7 @@ class Car:
     laps: dict[int, dict[int, Lap]] = field(default_factory=dict)
     # list of events for the current frame
     # cleared then appended to in handle frame
-    events: list[Event] = field(default_factory=list)
+    events: list[EventTypes] = field(default_factory=list)
 
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, Car)
@@ -153,7 +153,7 @@ class Car:
         )
 
     def handle_new_lap(self, frame: Snapshot, new_car: Car) -> None:
-        self.events.append(Event.CAR_NEW_LAP)
+        self.events.append(EventTypes.CAR_NEW_LAP)
 
         prev_lap: Lap | None = None
         if self.session_num not in self.laps:

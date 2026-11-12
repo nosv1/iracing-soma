@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from soma.car import Car
 from soma.driver import Driver
+from soma.event import Event, FlagsChanged
 from soma.irsdk_vars import (
     PLAYER_CAR_IDX,
     SESSION_ID,
@@ -15,6 +16,7 @@ from soma.irsdk_vars import (
     WEEKEND_INFO,
 )
 from soma.loader import Snapshot
+from soma.session_flag import SessionFlag
 from soma.session_type import SessionType
 
 logger = logging.getLogger(__file__)
@@ -28,9 +30,13 @@ class Session:
     session_tick: int
     session_type: SessionType
     player_car_idx: int
+    session_flags: set[SessionFlag] = field(default_factory=set)
     cars: dict[int, Car] = field(default_factory=dict)  # CarIdx, Car
     drivers: dict[int, Driver] = field(default_factory=dict)  # CarIdx, Driver
     positions: dict[int, int] = field(default_factory=dict)  # position, CarIdx
+    # list of events for the current frame
+    # cleared then appended to in handle frame
+    events: list[Event] = field(default_factory=list)
 
     @property
     def player_car(self) -> Car:
@@ -53,6 +59,7 @@ class Session:
                 frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][SESSION_TYPE]
             ),
             player_car_idx=frame[PLAYER_CAR_IDX],
+            session_flags=SessionFlag.from_frame(frame),
             cars=cars,
             drivers=drivers,
         )
@@ -63,12 +70,22 @@ class Session:
         self.session_tick = new_session.session_tick
         self.session_type = new_session.session_type
         self.player_car_idx = new_session.player_car_idx
+        self.session_flags = new_session.session_flags
         self.positions = {c.position: c.idx for c in new_session.cars.values()}
 
     def is_race(self) -> bool:
         return self.session_type.is_race()
 
     def handle_frame(self, frame: Snapshot, new_session: Session):
+        self.events = []
+
+        # check if flags changed
+        if SessionFlag.flags_changed(new_session.session_flags, self.session_flags):
+            self.events.append(
+                FlagsChanged(
+                    old_flags=self.session_flags, cur_flags=new_session.session_flags
+                )
+            )
         self.update_session(new_session)
 
         # add any new cars to existing dict
