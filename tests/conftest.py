@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from pathlib import Path
 
 import pytest
@@ -84,9 +84,19 @@ def laps_session(snapshots_with_laps_iterator: Iterator[Snapshot]) -> Session:
 
 
 @pytest.fixture(scope="module")
-def rolling_start_session(recordings_path: Path) -> Session:
+def rolling_start_loader(recordings_path: Path) -> Loader:
+    return Loader(recordings_path / "rolling_start")
+
+
+@pytest.fixture(scope="module")
+def rolling_start_snapshots(rolling_start_loader: Loader) -> list[Snapshot]:
+    return list(rolling_start_loader.snapshots())
+
+
+@pytest.fixture(scope="module")
+def rolling_start_session(rolling_start_snapshots: list[Snapshot]) -> Session:
     session: Session | None = None
-    for snapshot in Loader(recordings_path / "rolling_start").snapshots():
+    for snapshot in rolling_start_snapshots:
         session = handle_frame(session, snapshot)
     assert session is not None
     return session
