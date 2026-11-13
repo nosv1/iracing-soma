@@ -97,6 +97,8 @@ SESSION_TICK = "SessionTick"
 SESSION_TIME = "SessionTime"
 # Seconds left till session ends (s)
 SESSION_TIME_REMAIN = "SessionTimeRemain"
+# Total number of seconds in session (s)
+SESSION_TIME_TOTAL = "SessionTimeTotal"
 # GPS vehicle speed (m/s)
 SPEED = "Speed"
 # 0=off throttle to 1=full throttle (0-1 fraction, despite the % unit)
