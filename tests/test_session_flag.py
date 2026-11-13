@@ -17,6 +17,8 @@ def create_session_with_session_flags(session_flags: set[SessionFlag]) -> Sessio
         session_time=0,
         session_tick=0,
         session_type=SessionType.RACE,
+        session_time_total=0,
+        session_time_remain=0,
         player_car_idx=0,
         session_flags=session_flags,
     )
