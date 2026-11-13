@@ -455,6 +455,43 @@ file. Open, his call:
   The traps are already in the backlog: the estimate moves, so a milestone can fire twice or get
   skipped. Check what `SessionLapsRemainEx` already gives first.
 
+### 2026-11-12: flags done, laps left started
+
+- **Flags landed** (his, `4688f38`, `cfb3ac2`): `SessionFlag.from_frame` → `set[SessionFlag]`,
+  `Session.events` with `FlagsChanged`, `handle_session_events` → `FlagsChangedFact` for newly-on
+  flags only; flags present on connect are absorbed (first frame builds the session, no event).
+  4 flag tests green on `rolling_start`. `do_stuff` takes `speaker: Speaker | None` (tests pass
+  `None`, silent).
+- **pytest hang, cause:** `Speaker`'s non-daemon thread blocks on `q.get()`; a fixture that never
+  called `stop()` kept the process alive after the summary. He made `speaker` a yield fixture.
+  `rolling_start_iterator` → `rolling_start_snapshots` (a `list`, so module scope isn't consumed
+  once).
+- **All recorded races are timed:** YAML `SessionLaps: unlimited`, `SessionLapsRemainEx` 32767
+  (`0x7FFF`, the unlimited value) throughout. No lap-count race recorded yet (ovals likely are;
+  record one). Lone Qualify has `SessionLaps: 2`.
+- **His design for laps left:** far from the end, approximate (or time) is fine; the **last 2
+  laps must be exact**. 1 to go = WHITE flag; 2 to go = where is the leader when time hits 0.
+  Pace: leader's best lap (his old rule of thumb: 1.02× best). Fuel: time-based (burn/s × time
+  left, own pace cancels) + 1 lap buffer; later.
+- **His WIP (uncommitted):** `Car.best_laps` + `update_best_lap`; `Session.estimate_laps_left`
+  = `int((SessionTimeRemain + leader lap_dist × best) / best) + 1`; `SessionTimeTotal` /
+  `SessionTimeRemain` on `Session`; `handler.py` has an unfinished `event_facts =` line (syntax
+  error). At pause: property typed `-> int` vs method `None | int`.
+  Earlier version crashed every multi-lap test (`float < None` on lap 1's `None` time); check
+  `uv run pytest` before anything else.
+- **Open, his:** the `+ 1` is the finish rule, **not measured**: find `SessionTimeRemain` → 0 vs
+  WHITE / CHECKERED vs leader crossings in a race recording. Does the race clock include the
+  pace lap (green was at 83.88 s race `SessionTime`)? Milestones = a named constant now, config
+  later (two drivers would choose differently; measured iRacing facts are constants, not
+  config). Spoken count rising when the leader's best improves: rule not decided.
+- **Vars:** no per-car current lap time in iRacing; his crossings give it (now − last crossing).
+  `CarIdxEstTime` (reference-pace time to the car's current spot) may turn lap pct into seconds;
+  unverified. `CarIdxBestLapTime` / `CarIdxBestLapNum` are in the full recordings: ground truth
+  for his best laps. `SESSION_TIME_TOTAL` added (`c9807a5`, mine).
+- **Stubs (mine, uncommitted, awaiting his OK):** `tests/test_laps_left.py` (5) and best-lap
+  stubs in `tests/test_car.py` (7). A `race_finish` fixture can be cut once `src/soma` reads
+  `SessionTimeRemain` (it does now in WIP) and he names the window.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
@@ -463,8 +500,9 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
 0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
    done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Spoke live
-   10-20.** **Next:** flags (race control voice, `SessionFlag`), then find the cause of the 60 s /
-   7 s catches in `20261020-112829` (replay at those calls).
+   10-20.** Flag events done 11-12. **Next (11-12):** laps left: measure the finish rule,
+   then 2-to-go / 1-to-go calls, then the line report (gap ahead, gap behind, time left).
+   Still open: the cause of the 60 s / 7 s catches in `20261020-112829`.
    Old plan, for reference: fix the
    0-laps guard, then a template voice line for the
    delta (load voice once; speaking blocks the loop; decide when it fires). Mini sectors after the line works. Keep it pure (snapshots in, event
