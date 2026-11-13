@@ -11,6 +11,8 @@ from soma.irsdk_vars import (
     SESSION_NUM,
     SESSION_TICK,
     SESSION_TIME,
+    SESSION_TIME_REMAIN,
+    SESSION_TIME_TOTAL,
     SESSION_TYPE,
     SESSIONS,
     WEEKEND_INFO,
@@ -29,6 +31,9 @@ class Session:
     session_time: float
     session_tick: int
     session_type: SessionType
+    # TODO determine what this is for ovals
+    session_time_total: float
+    session_time_remain: float
     player_car_idx: int
     session_flags: set[SessionFlag] = field(default_factory=set)
     cars: dict[int, Car] = field(default_factory=dict)  # CarIdx, Car
@@ -41,6 +46,10 @@ class Session:
     @property
     def player_car(self) -> Car:
         return self.cars[self.player_car_idx]
+
+    @property
+    def estimated_laps_left(self) -> None | int:
+        return self.estimate_laps_left()
 
     @classmethod
     def from_frame(cls, frame: Snapshot) -> Session:
@@ -58,6 +67,8 @@ class Session:
             session_type=SessionType(
                 frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][SESSION_TYPE]
             ),
+            session_time_total=frame[SESSION_TIME_TOTAL],
+            session_time_remain=frame[SESSION_TIME_REMAIN],
             player_car_idx=frame[PLAYER_CAR_IDX],
             session_flags=SessionFlag.from_frame(frame),
             cars=cars,
@@ -69,6 +80,8 @@ class Session:
         self.session_time = new_session.session_time
         self.session_tick = new_session.session_tick
         self.session_type = new_session.session_type
+        self.session_time_total = new_session.session_time_total
+        self.session_time_remain = new_session.session_time_remain
         self.player_car_idx = new_session.player_car_idx
         self.session_flags = new_session.session_flags
         self.positions = {c.position: c.idx for c in new_session.cars.values()}
@@ -76,16 +89,54 @@ class Session:
     def is_race(self) -> bool:
         return self.session_type.is_race()
 
-    def handle_frame(self, frame: Snapshot, new_session: Session):
-        self.events = []
+    def estimate_laps_left(self) -> None | int:
+        # TODO developed for timed races, what happens for lap count races?
+        leader_car = self.cars[self.positions[1]]
 
-        # check if flags changed
+        if self.session_num not in leader_car.laps:
+            return None
+
+        if self.session_num not in leader_car.best_laps:
+            return None
+
+        if not isinstance(leader_car.best_laps[self.session_num], int):
+            return None
+
+        leaders_best_lap_lap_number = leader_car.best_laps[self.session_num]
+        if leaders_best_lap_lap_number is None:
+            return None
+
+        leaders_best_lap = leader_car.laps[self.session_num][
+            leaders_best_lap_lap_number
+        ]
+
+        if leaders_best_lap.lap_time_s is None:
+            return None
+
+        # the amount of time to add back to session time given leader is some
+        # distance through the lap already, lap dist * best lap is prob close enough
+        leader_lap_time_offset = leader_car.lap_dist * leaders_best_lap.lap_time_s
+        # round down the estimated laps left and add one
+        return (
+            int(
+                (self.session_time_remain + leader_lap_time_offset)
+                / leaders_best_lap.lap_time_s
+            )
+            + 1
+        )
+
+    def detect_flag_changes(self, new_session: Session) -> None:
         if SessionFlag.flags_changed(new_session.session_flags, self.session_flags):
             self.events.append(
                 FlagsChanged(
                     old_flags=self.session_flags, cur_flags=new_session.session_flags
                 )
             )
+
+    def handle_frame(self, frame: Snapshot, new_session: Session):
+        self.events = []
+
+        self.detect_flag_changes(new_session)
         self.update_session(new_session)
 
         # add any new cars to existing dict
