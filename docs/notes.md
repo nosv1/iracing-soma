@@ -495,6 +495,18 @@ file. Open, his call:
   stubs in `tests/test_car.py` (7). A `race_finish` fixture can be cut once `src/soma` reads
   `SessionTimeRemain` (it does now in WIP) and he names the window.
 
+### 2026-11-12 (night): side task, livery (no Soma work)
+
+- Built a Blue Angels livery for the Super Formula Lights on request ("just build it" for
+  this; not the skill he's building here). Lives outside the repo:
+  `C:\Users\chris\iracing\paints\superformulalights324\blue_angels.py` → `car_1471389.tga`
+  (also copied to `Documents\iRacing\paint\superformulalights324\`). His iRacing cust ID
+  1471389 came from `DriverUserID` in a recording's session YAML.
+- Method worth reusing: a labelled UV grid (`--grid`) painted onto the car, read in the
+  iRacing paint preview, maps template pixels to the 3D car. Guessing from the flat template
+  was wrong about as often as right.
+- Soma state unchanged from the 11-12 entry above.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
