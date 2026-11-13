@@ -1,3 +1,5 @@
+import pytest
+
 from soma.car import Car
 from soma.lap import Lap
 from soma.track_surface import TrackSurface
@@ -97,3 +99,43 @@ def test_not_in_world_frame_leaves_car_unchanged() -> None:
     assert car.lap_dist == new_car.lap_dist - 1
     assert car.event_laps_completed == new_car.event_laps_completed - 1
     assert car.session_time == new_car.session_time - 1
+
+
+def test_best_lap_skips_untimed_first_lap() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: lap 1 with lap_time_s None -> no best lap yet, no crash")
+
+
+def test_best_lap_first_timed_lap() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: lap 1 untimed, lap 2 timed 90.0 -> best is lap 2")
+
+
+def test_best_lap_faster_replaces() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: laps 90.0, 89.5 -> best is the 89.5 lap")
+
+
+def test_best_lap_slower_keeps() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: laps 89.5, 90.0 -> best stays the 89.5 lap")
+
+
+def test_best_lap_tie_keeps_first() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: laps 89.5, 89.5 -> best stays the earlier lap")
+
+
+def test_best_lap_per_session() -> None:
+    # recording: none; build laps in code
+    pytest.fail("TODO: best 85.0 in qualifying, race laps 90.0 -> race best is 90.0")
+
+
+def test_best_lap_matches_official() -> None:
+    # recording: recordings/20261020-112829 (gitignored), race; frames have
+    #   CarIdxBestLapTime / CarIdxBestLapNum (posts late, like CarIdxLastLapTime);
+    #   trimmed fixtures drop them until src/soma reads them
+    pytest.fail(
+        "TODO: every car at race end -> best lap time and number match"
+        " CarIdxBestLapTime / CarIdxBestLapNum"
+    )
