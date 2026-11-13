@@ -33,6 +33,8 @@ class Car:
     # {session_num: dict[lap_num: Lap]}
     prev_session_lap_num: int
     laps: dict[int, dict[int, Lap]] = field(default_factory=dict)
+    # TODO check for best lap validity
+    best_laps: dict[int, int | None] = field(default_factory=dict)
     # list of events for the current frame
     # cleared then appended to in handle frame
     events: list[EventTypes] = field(default_factory=list)
@@ -152,12 +154,34 @@ class Car:
             and old_car.lap_dist > self.lap_dist
         )
 
+    def update_best_lap(self, new_lap: Lap) -> None:
+        def set_new_best_lap(lap_number: int):
+            self.best_laps[self.session_num] = lap_number
+
+        if self.best_laps[self.session_num] is None:
+            set_new_best_lap(new_lap.lap_number)
+
+        else:
+            best_lap_lap_number = self.best_laps[self.session_num]
+            if best_lap_lap_number is None:
+                return
+            cur_best_lap = self.laps[self.session_num][best_lap_lap_number]
+
+            if (
+                new_lap.lap_time_s is not None
+                and cur_best_lap.lap_time_s is not None
+                and new_lap.lap_time_s < cur_best_lap.lap_time_s
+            ):
+                set_new_best_lap(new_lap.lap_number)
+
     def handle_new_lap(self, frame: Snapshot, new_car: Car) -> None:
         self.events.append(EventTypes.CAR_NEW_LAP)
 
         prev_lap: Lap | None = None
         if self.session_num not in self.laps:
             self.laps[self.session_num] = {}
+            self.best_laps[self.session_num] = None
+
         else:
             prev_lap = self.laps[self.session_num][self.prev_session_lap_num]
 
@@ -174,11 +198,14 @@ class Car:
         else:
             estimated_lap_time = None
 
+        # new lap
         lap = Lap.from_frame(
             frame, self.idx, estimated_lap_timestamp, estimated_lap_time
         )
         self.laps[self.session_num][lap.lap_number] = lap
         self.prev_session_lap_num = lap.lap_number
+
+        self.update_best_lap(lap)
 
     def handle_frame(self, frame: Snapshot, new_car: Car):
         self.events = []
