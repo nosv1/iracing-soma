@@ -473,7 +473,10 @@ file. Open, his call:
   laps must be exact**. 1 to go = WHITE flag; 2 to go = where is the leader when time hits 0.
   Pace: leader's best lap (his old rule of thumb: 1.02× best). Fuel: time-based (burn/s × time
   left, own pace cancels) + 1 lap buffer; later.
-- **His WIP (uncommitted):** `Car.best_laps` + `update_best_lap`; `Session.estimate_laps_left`
+- **Pushed at pause (`f5b225e`): the suite doesn't import.** `Car.race_distance_milestones` has a
+  list default → dataclass `ValueError` (needs `default_factory`). mypy is clean; pytest dies at
+  collection. Fix first.
+- **His WIP (pushed at pause):** `Car.best_laps` + `update_best_lap`; `Session.estimate_laps_left`
   = `int((SessionTimeRemain + leader lap_dist × best) / best) + 1`; `SessionTimeTotal` /
   `SessionTimeRemain` on `Session`; `handler.py` has an unfinished `event_facts =` line (syntax
   error). At pause: property typed `-> int` vs method `None | int`.
