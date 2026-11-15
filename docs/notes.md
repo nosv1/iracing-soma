@@ -507,6 +507,27 @@ file. Open, his call:
   was wrong about as often as right.
 - Soma state unchanged from the 11-12 entry above.
 
+### 2026-11-14: idea, corner reminders (no code)
+
+- **His idea:** a "rally mode" that says corner names as he approaches them, for learning long
+  tracks (the Nordschleife: ~8 min, 70+ corners). He already knows the track and wants to be
+  **reminded**. So it's names only, no pace notes, and radius and speed aren't needed.
+- Ideas I gave, none decided: get corner start/end `LapDist` from his own lap (curvature
+  `YawRate / Speed` spikes; radius `Speed / YawRate`, apex = min `Speed`, if ever wanted). Call
+  **sections**, not corners: Nordschleife names cover strings of corners, maybe 20–30 calls.
+  Match an ordered name list ([oversteer48](https://oversteer48.com/nurburgring-corner-names/))
+  to the detected corners by order. Prior art: Crew Chief "track landmarks" use the same shape
+  (name + start/end lap distance, recorded by driving, renamed by hand). Auto-detection gives
+  "turn 1..n" on any track.
+- Design points raised: trigger by time to the corner (distance ÷ `Speed` vs how long the line
+  takes to say), not distance. Pre-rendered clips. It conflicts with "never talk in a braking
+  zone", so other calls need a priority order. Risk of a crutch (fade the calls out). The
+  corner map is the same data the "hold messages for a straight" timing needs.
+- Open, his: layout (Nordschleife / 24h combined / GP), names typed by hand vs detected from a
+  recording. Needs a Nordschleife recording first (none yet). Offered: a throwaway plot of
+  curvature vs lap distance once one exists. Not logged in his backlog.
+- Suite still fails at collection (11-12 push); untouched.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
