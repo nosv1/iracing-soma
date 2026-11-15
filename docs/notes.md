@@ -478,8 +478,7 @@ file. Open, his call:
   collection. Fix first.
 - **His WIP (pushed at pause):** `Car.best_laps` + `update_best_lap`; `Session.estimate_laps_left`
   = `int((SessionTimeRemain + leader lap_dist × best) / best) + 1`; `SessionTimeTotal` /
-  `SessionTimeRemain` on `Session`; `handler.py` has an unfinished `event_facts =` line (syntax
-  error). At pause: property typed `-> int` vs method `None | int`.
+  `SessionTimeRemain` on `Session`; race-distance milestones on `Car` (`f5b225e`).
   Earlier version crashed every multi-lap test (`float < None` on lap 1's `None` time); check
   `uv run pytest` before anything else.
 - **Open, his:** the `+ 1` is the finish rule, **not measured**: find `SessionTimeRemain` → 0 vs
