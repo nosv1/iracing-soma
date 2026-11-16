@@ -8,11 +8,11 @@ from soma.session_flag import SessionFlag
 class EventFact:
     event: ClassVar[str]
 
-    def to_json(self):
-        pass
+    def to_json(self) -> dict:
+        return {}
 
-    def to_str(self):
-        pass
+    def to_str(self) -> str:
+        return ""
 
 
 @dataclass
