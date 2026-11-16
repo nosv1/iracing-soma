@@ -527,6 +527,46 @@ file. Open, his call:
   curvature vs lap distance once one exists. Not logged in his backlog.
 - Suite still fails at collection (11-12 push); untouched.
 
+### 2026-11-16 (morning): review against NASA/JPL Power of 10 (no code)
+
+New hub standard (PROFILE.md, 11-16). I reviewed `def4840` as pushed; his local WIP may differ.
+Measured: ruff 1, mypy clean, `mypy --strict` 42 (src + main) + 34 (tests). pytest dies at
+collection; with the milestone default patched (temporarily, then reverted) it's 14 passed,
+13 TODO stubs, 11 real failures + 6 errors, all `KeyError: 'SessionTimeTotal'`.
+Passes already: no recursion (1), every function ≤ 60 lines (4), no metaprogramming (8).
+
+**Fix now** (his):
+1. `car.py:53` mutable list default → suite won't import. Also rule 6: his 11-12 note says
+   milestones are a named constant. Is it per-car state at all?
+2. Test recordings lack `SessionTimeTotal` / `SessionTimeRemain`; `Session.from_frame`
+   (`session.py:70-71`) requires them. All 7 fixtures. See `trim_recording.py`.
+3. Rule 10: ruff `tests/conftest.py:1`; `mypy --strict` (mostly missing return types;
+   `Snapshot` imported from `soma.loader` in `car.py:13`, `driver.py:4`, `session.py:20`).
+4. Rule 5: `car.py:72` `assert` in `__eq__` (stripped by `-O`; what should `__eq__` give for a
+   non-Car?).
+5. Rule 7: `loader.py:44-52` error message: adjacent literals join before `.join()`, so the
+   preamble becomes the separator; and it lists all ticks, not the missing ones.
+6. Rule 7: `main.py:41-45` `--speaker type=bool`: `-s False` is `True`.
+7. Rule 5: `lap.py:38-49` no checks on inputs. What range can `lap_dist` take, and what does
+   iRacing send for a car not in the world? The checks may point at the 60.9 s / 7.4 s catches.
+8. Rule 5/7: unchecked lookups that can end Soma mid-race: `car.py:159`, `handler.py:24-26`,
+   `session.py:94`; `main.py` has no handler around `do_stuff`. His design: crash, or skip the
+   frame and log?
+
+**Noted:**
+- Rule 3: `speaker.py:14` queue unbounded; a caught call spoken a lap late is wrong info. Needs
+  a rule (cap / drop stale / priority). `recorder.py:26` same, lower risk.
+- Rule 7: speaker and recorder threads die silently on an exception (Soma goes mute, no log).
+- Rule 2: `main.py:86` never waits, so it rebuilds `Session.from_frame` every spin
+  (`handler.py:107` builds before the tick check). Matters next to the local LLM.
+  `reconnect_timer` never resets (`main.py:110`); STOP isn't checked during the sleep.
+- `main.py:67` replay passes `0.0` every frame, so the 1 s throttle never applies;
+  `bool | float` return is a muddy contract.
+- `STOP = "STOP"` compared with `is` (speaker, recorder): use a unique sentinel.
+- `event_fact.py:11-15` base `to_json` / `to_str` return `None` silently.
+- Rule 9: `recorder.py:61-63` reads pyirsdk privates (`_header`, `_shared_mem`).
+- Bounds to write down: `Car.laps` grows with race length, cars ≤ 64 slots.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
