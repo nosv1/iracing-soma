@@ -28,6 +28,13 @@ dev = [
 module = ["irsdk", "sounddevice"]
 ignore_missing_imports = true
 
+[tool.pyright]
+# Pylance reads this too: check against 3.14 (PEP 649 deferred annotations, so a
+# class can name itself in its own hints) regardless of the editor's interpreter pick
+pythonVersion = "3.14"
+venvPath = "."
+venv = ".venv"
+
 [tool.ruff.lint]
 # E/F: pycodestyle errors + pyflakes (default); I: import sorting; N: PEP 8 naming;
 # UP: modern syntax for the target Python; B: common bug patterns
