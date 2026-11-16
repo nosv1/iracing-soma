@@ -1,10 +1,10 @@
-{"SessionTick": 600, "SessionNum": 0, "SessionTime": 0.0, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 606, "SessionNum": 0, "SessionTime": 0.1, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 612, "SessionNum": 0, "SessionTime": 0.2, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 618, "SessionNum": 0, "SessionTime": 0.3, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 624, "SessionNum": 0, "SessionTime": 0.4, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 630, "SessionNum": 0, "SessionTime": 0.5, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 636, "SessionNum": 0, "SessionTime": 0.6, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 642, "SessionNum": 0, "SessionTime": 0.7, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 648, "SessionNum": 0, "SessionTime": 0.8, "PlayerCarIdx": 1, "SessionFlags": 0}
-{"SessionTick": 654, "SessionNum": 0, "SessionTime": 0.9, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 600, "SessionNum": 0, "SessionTime": 0.0, "SessionTimeTotal": 60.0, "SessionTimeRemain": 60.0, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 606, "SessionNum": 0, "SessionTime": 0.1, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.9, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 612, "SessionNum": 0, "SessionTime": 0.2, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.8, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 618, "SessionNum": 0, "SessionTime": 0.3, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.7, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 624, "SessionNum": 0, "SessionTime": 0.4, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.6, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 630, "SessionNum": 0, "SessionTime": 0.5, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.5, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 636, "SessionNum": 0, "SessionTime": 0.6, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.4, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 642, "SessionNum": 0, "SessionTime": 0.7, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.3, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 648, "SessionNum": 0, "SessionTime": 0.8, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.2, "PlayerCarIdx": 1, "SessionFlags": 0}
+{"SessionTick": 654, "SessionNum": 0, "SessionTime": 0.9, "SessionTimeTotal": 60.0, "SessionTimeRemain": 59.1, "PlayerCarIdx": 1, "SessionFlags": 0}
