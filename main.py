@@ -92,6 +92,8 @@ def loop_iracing_stream(
                 next_stop_check = do_stop_loop
 
             if ir.ir.is_connected:
+                reconnect_timer = 1
+
                 # freeze data stream
                 ir.ir.freeze_var_buffer_latest()
 
