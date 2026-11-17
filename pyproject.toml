@@ -23,6 +23,9 @@ dev = [
     "types-pyyaml>=6.0.12.20260906",
 ]
 
+[tool.mypy]
+files = ["main.py", "src", "tests"]
+strict = true
 [[tool.mypy.overrides]]
 # these ship no type info (no stubs, no py.typed); treat their imports as Any
 module = ["irsdk", "sounddevice"]
