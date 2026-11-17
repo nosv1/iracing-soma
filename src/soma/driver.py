@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from soma.irsdk_vars import CAR_IDX, DRIVER_INFO, DRIVERS, USER_NAME
-from soma.loader import Snapshot
+from soma.snapshot import Snapshot
 
 
 @dataclass
