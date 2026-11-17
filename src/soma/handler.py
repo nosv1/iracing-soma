@@ -10,7 +10,7 @@ from soma.speaker import Speaker
 logger = logging.getLogger(__file__)
 
 
-def handle_event_facts(event_facts: list[EventFact], speaker: Speaker):
+def handle_event_facts(event_facts: list[EventFact], speaker: Speaker) -> None:
     for event_fact in event_facts:
         speaker.add_to_queue(event_fact.to_str())
 

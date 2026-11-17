@@ -13,7 +13,7 @@ class SessionType(StrEnum):
     UNKNOWN = "Unknown"
 
     @classmethod
-    def _missing_(cls, value) -> Literal[SessionType.UNKNOWN]:
+    def _missing_(cls, value: object) -> Literal[SessionType.UNKNOWN]:
         logger.warning(f"UNKNOWN SESSION TYPE: {value!r}")
         return cls.UNKNOWN
 

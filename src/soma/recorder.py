@@ -46,7 +46,7 @@ class Recorder:
     def next_recorded_tick(self) -> int:
         return self._tick_delay + self._prev_recorded_tick
 
-    def update_yaml_idx(self, cur_tick: int, filename: str):
+    def update_yaml_idx(self, cur_tick: int, filename: str) -> None:
         self._yaml_idx[str(cur_tick)] = filename
         with open(self._yaml_history_dir / "index.json", "w+") as f:
             json.dump(self._yaml_idx, f, indent=4)

@@ -133,7 +133,7 @@ class Session:
                 )
             )
 
-    def handle_frame(self, frame: Snapshot, new_session: Session):
+    def handle_frame(self, frame: Snapshot, new_session: Session) -> None:
         self.events = []
 
         self.detect_flag_changes(new_session)
