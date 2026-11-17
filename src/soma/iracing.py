@@ -6,7 +6,7 @@ logger = logging.getLogger(__file__)
 
 
 class iRacing:
-    def __init__(self):
+    def __init__(self) -> None:
         self.ir = irsdk.IRSDK()
 
     def connect(self) -> None:
