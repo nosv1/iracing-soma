@@ -69,7 +69,8 @@ class Car:
     events: list[EventTypes] = field(default_factory=list)
 
     def __eq__(self, other: object) -> bool:
-        assert isinstance(other, Car)
+        if not isinstance(other, Car):
+            return False
         return self.idx == other.idx
 
     @classmethod
