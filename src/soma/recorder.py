@@ -21,7 +21,7 @@ class Recorder:
         # iracing outputs at 60 fps,
         # the recorder can decide how often each of those frames gets recorded
         # 60 / 10 = 6 frames between recorded frames
-        self._tick_delay = iracing_fps / recorded_fps
+        self._tick_delay = iracing_fps // recorded_fps
 
         self.q: Queue[str] = Queue()  # iRacing frames, json dumps
         # append this to the queue to stop the thread
@@ -43,7 +43,7 @@ class Recorder:
         )
 
     @property
-    def next_recorded_tick(self):
+    def next_recorded_tick(self) -> int:
         return self._tick_delay + self._prev_recorded_tick
 
     def update_yaml_idx(self, cur_tick: int, filename: str):
@@ -51,7 +51,7 @@ class Recorder:
         with open(self._yaml_history_dir / "index.json", "w+") as f:
             json.dump(self._yaml_idx, f, indent=4)
 
-    def record_iRacing_session_yaml(self, ir: iRacing):
+    def record_iRacing_session_yaml(self, ir: iRacing) -> None:
         # only record the session if there's been an update
         cur_session_info_update = ir.ir.session_info_update
         if self._prev_session_info_update == cur_session_info_update:
@@ -93,12 +93,12 @@ class Recorder:
         self.q.put(json.dumps({name: ir.ir[name] for name in ir.ir.var_headers_names}))
         return True
 
-    def handle_new_tick(self, ir: iRacing):
+    def handle_new_tick(self, ir: iRacing) -> None:
         queued = self.queue_iRacing_frame(ir)
         if queued:
             self.record_iRacing_session_yaml(ir)
 
-    def writer(self):
+    def writer(self) -> None:
         with open(self._output_dir / "frames.txt", "a") as f:
             while True:
                 item = self.q.get()
@@ -106,6 +106,6 @@ class Recorder:
                     break
                 f.write(f"{item}\n")
 
-    def stop(self):
+    def stop(self) -> None:
         self.q.put(self.STOP)
         self._t.join()
