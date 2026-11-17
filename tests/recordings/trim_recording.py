@@ -20,7 +20,7 @@ import re
 import shutil
 from pathlib import Path
 
-from soma import irsdk_vars
+import soma.irsdk_vars as irsdk_vars
 
 SRC_DIR = Path(irsdk_vars.__file__).parent
 
