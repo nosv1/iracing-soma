@@ -16,7 +16,7 @@ class iRacing:
         else:
             logger.info("iRacing sim is not running")
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         was_connected = self.ir.is_connected
         self.ir.shutdown()
         if was_connected:
