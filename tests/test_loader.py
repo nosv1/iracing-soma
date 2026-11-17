@@ -4,7 +4,8 @@ import pytest
 
 from soma.exceptions import CorruptRecordingsError
 from soma.irsdk_vars import DRIVER_INFO, DRIVERS, USER_NAME
-from soma.loader import Loader, Snapshot
+from soma.loader import Loader
+from soma.snapshot import Snapshot
 
 
 def test_yaml_decoded_correctly(valid_snapshots_dict: dict[int, Snapshot]) -> None:

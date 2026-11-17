@@ -10,7 +10,7 @@ from soma.irsdk_vars import (
     SESSION_TIME,
 )
 from soma.lap import Lap
-from soma.loader import Snapshot
+from soma.snapshot import Snapshot
 from soma.track_surface import TrackSurface
 
 
