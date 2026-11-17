@@ -3,7 +3,7 @@ import logging
 from soma.car import Car, CarDeltaGap
 from soma.event import FlagsChanged
 from soma.event_fact import CaughtFact, EventFact, FlagsChangedFact, GapFact
-from soma.player_constants import PlayerConstants
+from soma.player import Player
 from soma.session import Session
 from soma.snapshot import Snapshot
 from soma.speaker import Speaker
@@ -78,9 +78,7 @@ def handle_car_events(session: Session) -> list[EventFact]:
     return event_facts
 
 
-def handle_player_events(
-    session: Session, player_constants: PlayerConstants
-) -> list[EventFact]:
+def handle_player_events(session: Session, player: Player) -> list[EventFact]:
     event_facts: list[EventFact] = []
     if not session.is_race():
         return event_facts

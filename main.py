@@ -8,6 +8,7 @@ from piper import PiperVoice
 from soma.do_stuff import do_stuff
 from soma.iracing import iRacing
 from soma.loader import Loader
+from soma.player import Player
 from soma.player_constants import (
     PlayerConstants,
     RaceDistanceMilestoneAsLap,
@@ -66,7 +67,7 @@ def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
 
 
 def loop_recording(
-    stop_file: Path, loader: Loader, speaker: Speaker, player_constants: PlayerConstants
+    stop_file: Path, loader: Loader, speaker: Speaker, player: Player
 ) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
@@ -79,16 +80,13 @@ def loop_recording(
             old_session=session,
             frame=frame,
             speaker=speaker,
-            player_constants=player_constants,
+            player=player,
         )
         session = packet.session
 
 
 def loop_iracing_stream(
-    stop_file: Path,
-    recorder: Recorder | None,
-    speaker: Speaker,
-    player_constants: PlayerConstants,
+    stop_file: Path, recorder: Recorder | None, speaker: Speaker, player: Player
 ) -> None:
     ir = iRacing()
     ir.connect()
@@ -116,10 +114,7 @@ def loop_iracing_stream(
                     recorder.handle_new_tick(ir)
 
                 packet = do_stuff(
-                    old_session=session,
-                    frame=ir.ir,
-                    speaker=speaker,
-                    player_constants=player_constants,
+                    old_session=session, frame=ir.ir, speaker=speaker, player=player
                 )
                 session = packet.session
 
@@ -169,12 +164,13 @@ def main(
             RaceDistanceMilestoneAsLap(1),
         ]
     )
+    player = Player(player_constants=player_constants)
 
     try:
         # loop recording
         if recording_to_load is not None:
             loader = Loader(recording_path=recordings_dir / recording_to_load)
-            loop_recording(stop_file, loader, speaker, player_constants)
+            loop_recording(stop_file, loader, speaker, player)
 
         # loop iracing stream
         else:
@@ -183,7 +179,7 @@ def main(
                 recorder = Recorder(
                     recording_destination, iracing_fps=60, recorded_fps=10
                 )
-            loop_iracing_stream(stop_file, recorder, speaker, player_constants)
+            loop_iracing_stream(stop_file, recorder, speaker, player)
     finally:
         speaker.stop()
 

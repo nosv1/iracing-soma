@@ -5,6 +5,7 @@ import pytest
 from soma.event_fact import CaughtFact
 from soma.handler import handle_frame, handle_player_events
 from soma.loader import Loader
+from soma.player import Player
 from soma.player_constants import PlayerConstants
 from soma.session import Session
 
@@ -47,11 +48,11 @@ def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
 def test_caught_call(laps_p3_loader: Loader) -> None:
     session: Session | None = None
     tick_990_caught_fact: CaughtFact | None = None
-    player_constants = PlayerConstants(race_milestones=[])
+    player = Player(player_constants=PlayerConstants(race_milestones=[]))
     for snapshot in laps_p3_loader.snapshots():
         session = handle_frame(session, snapshot)
         if session.session_tick == 990:
-            event_facts = handle_player_events(session, player_constants)
+            event_facts = handle_player_events(session, player)
             assert len(event_facts) == 1
             assert isinstance(event_facts[0], CaughtFact)
             tick_990_caught_fact = event_facts[0]
