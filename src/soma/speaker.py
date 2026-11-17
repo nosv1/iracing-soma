@@ -9,7 +9,7 @@ logger = logging.getLogger(__file__)
 
 
 class Speaker:
-    def __init__(self, voice: PiperVoice, use_thread: bool = True):
+    def __init__(self, voice: PiperVoice, use_thread: bool = True) -> None:
         self.voice = voice
         self.q: Queue[str] = Queue()
         # append this to the queue to stop the thread
@@ -22,12 +22,12 @@ class Speaker:
 
         self.add_to_queue("Speaker initialized")
 
-    def add_to_queue(self, text: str):
+    def add_to_queue(self, text: str) -> None:
         self.q.put(text)
         if not self._use_thread:
             self.speaker()
 
-    def speaker(self):
+    def speaker(self) -> None:
         while self._use_thread or not self.q.empty():
             item = self.q.get()
             if item is self.STOP:
@@ -39,7 +39,7 @@ class Speaker:
                 sounddevice.play(chunk.audio_float_array, chunk.sample_rate)
                 sounddevice.wait()
 
-    def stop(self):
+    def stop(self) -> None:
         self.q.put(self.STOP)
         if self._use_thread:
             self._t.join()
