@@ -7,8 +7,9 @@ from piper import PiperVoice
 from soma.driver import Driver
 from soma.handler import handle_frame
 from soma.irsdk_vars import SESSION_TICK
-from soma.loader import Loader, Snapshot
+from soma.loader import Loader
 from soma.session import Session
+from soma.snapshot import Snapshot
 from soma.speaker import Speaker
 
 
