@@ -567,6 +567,33 @@ Passes already: no recursion (1), every function ≤ 60 lines (4), no metaprogra
 - Rule 9: `recorder.py:61-63` reads pyirsdk privates (`_header`, `_shared_mem`).
 - Bounds to write down: `Car.laps` grows with race length, cars ≤ 64 slots.
 
+### 2026-11-16 (evening, laptop): Power of 10 fixes, Player design
+
+His work, on branch `player_constants` (19 commits, `35f8563`; not merged). At 19:14:
+pytest 25 passed, 1 xfail, 18 failed (all TODO stubs, no real failures); `mypy --strict` clean
+on his code; ruff 1.
+
+- **Done:** (1) milestones out of `Car` into `player_constants.py`; (3) mostly: `Snapshot`
+  imported from `soma.snapshot`, dicts typed (`dict[str, Any]` only where JSON/YAML comes in),
+  recorder lambda became a typed method that raises on a non-int tick.
+- **Design he reached (Player):** milestones are per player, not per car. `Player` holds the
+  constants and which milestones have fired (the state that earns it an object). Built once in
+  `main()` like `Speaker`, passed to `do_stuff`; Session never knows it exists. Starts as
+  `handle_frame(frame)`; takes the session (read only) when the milestone check needs laps left.
+  Laps left is per car and lives on Car/Session: you finish on your first crossing after the
+  leader's, so laps down mostly drop out. His formula: leader time left + on-road gap.
+  Order: laps-left estimate first, then Player on top.
+- `handler.py`: guards became `is_x()` predicates. Check next review: the `CAR_NEW_LAP` gate
+  still exists somewhere, and where the `laps[session_num]` lookup went.
+- Open, his: does `PlayerCarIdx` change mid-run? Stub `test_player_car_idx_follows_server_switch`.
+- Correction to the morning review: the recorder tick check raises on the **main** thread
+  (`handle_new_tick`), not the writer thread; uncaught, it ends Soma. That's item 8.
+
+**Still open from the review:** ruff F401 `tests/test_laps.py:6`; (4) `assert` in
+`Car.__eq__`; (6) `--speaker type=bool` (he knows why now; `store_true` vs
+`BooleanOptionalAction` depends on the default); (5) and (7) touched, not reviewed; (8) crash
+or skip-and-log, his design. Mine: `trim_recording.py:23` mypy `attr-defined`.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
