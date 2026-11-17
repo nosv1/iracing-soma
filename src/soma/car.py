@@ -184,7 +184,7 @@ class Car:
         )
 
     def update_best_lap(self, new_lap: Lap) -> None:
-        def set_new_best_lap(lap_number: int):
+        def set_new_best_lap(lap_number: int) -> None:
             self.best_laps[self.session_num] = lap_number
 
         if self.best_laps[self.session_num] is None:
@@ -236,7 +236,7 @@ class Car:
 
         self.update_best_lap(lap)
 
-    def handle_frame(self, frame: Snapshot, new_car: Car):
+    def handle_frame(self, frame: Snapshot, new_car: Car) -> None:
         self.events = []
 
         if new_car.did_finish_lap(self):
