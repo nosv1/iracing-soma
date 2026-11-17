@@ -126,7 +126,7 @@ class Session:
         )
 
     def detect_flag_changes(self, new_session: Session) -> None:
-        if SessionFlag.flags_changed(new_session.session_flags, self.session_flags):
+        if SessionFlag.did_flags_change(new_session.session_flags, self.session_flags):
             self.events.append(
                 FlagsChanged(
                     old_flags=self.session_flags, cur_flags=new_session.session_flags

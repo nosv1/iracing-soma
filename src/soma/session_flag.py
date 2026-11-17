@@ -34,5 +34,7 @@ class SessionFlag(IntFlag):
         return bool(flag & flags)
 
     @classmethod
-    def flags_changed(cls, cur_flags: set[SessionFlag], prev_flags: set[SessionFlag]):
+    def did_flags_change(
+        cls, cur_flags: set[SessionFlag], prev_flags: set[SessionFlag]
+    ) -> bool:
         return cur_flags != prev_flags

@@ -1,5 +1,6 @@
 import logging
 from enum import StrEnum
+from typing import Literal
 
 logger = logging.getLogger(__file__)
 
@@ -12,7 +13,7 @@ class SessionType(StrEnum):
     UNKNOWN = "Unknown"
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value) -> Literal[SessionType.UNKNOWN]:
         logger.warning(f"UNKNOWN SESSION TYPE: {value!r}")
         return cls.UNKNOWN
 
