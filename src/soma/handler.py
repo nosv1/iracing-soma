@@ -1,8 +1,9 @@
 import logging
 
 from soma.car import Car, CarDeltaGap
-from soma.event import EventTypes, FlagsChanged
+from soma.event import FlagsChanged
 from soma.event_fact import CaughtFact, EventFact, FlagsChangedFact, GapFact
+from soma.player_constants import PlayerConstants
 from soma.session import Session
 from soma.snapshot import Snapshot
 from soma.speaker import Speaker
@@ -55,9 +56,8 @@ def handle_delta_gaps_exist(
     return event_facts
 
 
-def handle_session_events(
-    event_facts: list[EventFact], session: Session
-) -> list[EventFact]:
+def handle_session_events(session: Session) -> list[EventFact]:
+    event_facts: list[EventFact] = []
     for event in session.events:
         if isinstance(event, FlagsChanged):
             for flag in event.new_flags:
@@ -66,40 +66,47 @@ def handle_session_events(
     return event_facts
 
 
-def handle_car_events(
-    event_facts: list[EventFact], session: Session
-) -> list[EventFact]:
+def handle_car_events(session: Session) -> list[EventFact]:
+    event_facts: list[EventFact] = []
+    if not session.is_race():
+        return event_facts
+
     for car in session.cars.values():
-        if EventTypes.CAR_NEW_LAP not in car.events:
+        if not car.new_lap_detected():
             continue
-        # is new lap
 
-        if car.idx != session.player_car_idx:
-            continue
-        # is player
+    return event_facts
 
-        if len(car.laps[car.session_num]) <= 1:
-            continue
-        # is past lap 1
 
-        if session.is_race():
-            if car.position <= 1:
-                continue
-            # is not p1
+def handle_player_events(
+    session: Session, player_constants: PlayerConstants
+) -> list[EventFact]:
+    event_facts: list[EventFact] = []
+    if not session.is_race():
+        return event_facts
 
-            delta_gaps = car.get_delta_gaps_ahead(session.cars, session.positions)
-            if len(delta_gaps) == 0:
-                continue
-            # delta gaps exist
-            event_facts = handle_delta_gaps_exist(
-                event_facts=event_facts,
-                delta_gaps=delta_gaps,
-                session=session,
-                player_car=car,
-            )
+    if session.player_car.is_p1():
+        return event_facts
 
-        # is not race
+    if not session.player_car.new_lap_detected():
+        return event_facts
 
+    if not session.player_car.is_past_lap_one():
+        return event_facts
+
+    delta_gaps = session.player_car.get_delta_gaps_ahead(
+        session.cars, session.positions
+    )
+    if len(delta_gaps) == 0:
+        return event_facts
+    # delta gaps exist
+
+    event_facts = handle_delta_gaps_exist(
+        event_facts=event_facts,
+        delta_gaps=delta_gaps,
+        session=session,
+        player_car=session.player_car,
+    )
     return event_facts
 
 
@@ -112,4 +119,4 @@ def handle_frame(old_session: Session | None, frame: Snapshot) -> Session:
         return old_session
 
     old_session.handle_frame(frame, new_session)
-    return old_session
+    return old_session  # as an updated session

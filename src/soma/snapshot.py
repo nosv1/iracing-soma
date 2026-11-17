@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class Snapshot:
-    frame: dict
-    session_yaml: dict
+    frame: dict[str, Any]
+    session_yaml: dict[str, Any]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         if key in self.session_yaml:
             return self.session_yaml[key]
         if key in self.frame:

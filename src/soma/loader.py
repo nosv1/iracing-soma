@@ -2,6 +2,7 @@ import json
 from collections.abc import Iterator
 from copy import copy
 from pathlib import Path
+from typing import Any
 
 import yaml
 

@@ -8,6 +8,11 @@ from piper import PiperVoice
 from soma.do_stuff import do_stuff
 from soma.iracing import iRacing
 from soma.loader import Loader
+from soma.player_constants import (
+    PlayerConstants,
+    RaceDistanceMilestoneAsLap,
+    RaceDistanceMilestoneAsPercentRemaining,
+)
 from soma.recorder import Recorder
 from soma.session import Session
 from soma.speaker import Speaker
@@ -60,7 +65,9 @@ def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
     return next_stop_check
 
 
-def loop_recording(stop_file: Path, loader: Loader, speaker: Speaker) -> None:
+def loop_recording(
+    stop_file: Path, loader: Loader, speaker: Speaker, player_constants: PlayerConstants
+) -> None:
     logger.info(f"looping recording: {loader.recording_path}")
     session: Session | None = None
     for frame in loader.snapshots():
@@ -68,12 +75,20 @@ def loop_recording(stop_file: Path, loader: Loader, speaker: Speaker) -> None:
         if isinstance(do_stop_loop, bool) and do_stop_loop:
             stop_file.unlink(missing_ok=True)
             break
-        packet = do_stuff(session=session, frame=frame, speaker=speaker)
+        packet = do_stuff(
+            old_session=session,
+            frame=frame,
+            speaker=speaker,
+            player_constants=player_constants,
+        )
         session = packet.session
 
 
 def loop_iracing_stream(
-    stop_file: Path, recorder: Recorder | None, speaker: Speaker
+    stop_file: Path,
+    recorder: Recorder | None,
+    speaker: Speaker,
+    player_constants: PlayerConstants,
 ) -> None:
     ir = iRacing()
     ir.connect()
@@ -100,7 +115,12 @@ def loop_iracing_stream(
                 if recorder is not None:
                     recorder.handle_new_tick(ir)
 
-                packet = do_stuff(session=session, frame=ir.ir, speaker=speaker)
+                packet = do_stuff(
+                    old_session=session,
+                    frame=ir.ir,
+                    speaker=speaker,
+                    player_constants=player_constants,
+                )
                 session = packet.session
 
                 # unfreeze data stream
@@ -139,12 +159,22 @@ def main(
     voices_dir = cur_dir / "voices"
     voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
     speaker = Speaker(voice=PiperVoice.load(voice_path), use_thread=use_speaker_thread)
+    player_constants = PlayerConstants(
+        race_milestones=[
+            RaceDistanceMilestoneAsPercentRemaining(0.5),
+            RaceDistanceMilestoneAsPercentRemaining(0.25),
+            RaceDistanceMilestoneAsLap(10),
+            RaceDistanceMilestoneAsLap(5),
+            RaceDistanceMilestoneAsLap(3),
+            RaceDistanceMilestoneAsLap(1),
+        ]
+    )
 
     try:
         # loop recording
         if recording_to_load is not None:
             loader = Loader(recording_path=recordings_dir / recording_to_load)
-            loop_recording(stop_file, loader, speaker)
+            loop_recording(stop_file, loader, speaker, player_constants)
 
         # loop iracing stream
         else:
@@ -153,7 +183,7 @@ def main(
                 recorder = Recorder(
                     recording_destination, iracing_fps=60, recorded_fps=10
                 )
-            loop_iracing_stream(stop_file, recorder, speaker)
+            loop_iracing_stream(stop_file, recorder, speaker, player_constants)
     finally:
         speaker.stop()
 

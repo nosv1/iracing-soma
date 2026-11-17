@@ -34,7 +34,9 @@ def test_no_event_when_flags_unchanged(rolling_start_snapshots: list[Snapshot]) 
     packet: Packet | None = None
     captured_sessions: list[Session] = []
     for frame in rolling_start_snapshots:
-        packet = do_stuff(session=session, frame=frame, speaker=None)
+        packet = do_stuff(
+            old_session=session, frame=frame, speaker=None, player_constants=None
+        )
         session = packet.session
         if 70.0 <= session.session_time <= 74.8:
             captured_sessions.append(deepcopy(session))
@@ -53,7 +55,9 @@ def test_green_at_start_spoken_once(rolling_start_snapshots: list[Snapshot]) -> 
     packet: Packet | None = None
     green_flags_changed_facts: list[FlagsChangedFact] = []
     for frame in rolling_start_snapshots:
-        packet = do_stuff(session=session, frame=frame, speaker=None)
+        packet = do_stuff(
+            old_session=session, frame=frame, speaker=None, player_constants=None
+        )
         session = packet.session
         for event_fact in packet.event_facts:
             if isinstance(event_fact, FlagsChangedFact):
@@ -71,7 +75,9 @@ def test_flag_turning_off_not_spoken(rolling_start_snapshots: list[Snapshot]) ->
     prev_session: Session | None = session
     packet: Packet | None = None
     for frame in rolling_start_snapshots:
-        packet = do_stuff(session=session, frame=frame, speaker=None)
+        packet = do_stuff(
+            old_session=session, frame=frame, speaker=None, player_constants=None
+        )
         session = packet.session
         if session.session_time >= 112.48:
             break
@@ -96,7 +102,7 @@ def test_only_newly_on_flags_spoken() -> None:
         session_flags={SessionFlag.GREEN, SessionFlag.YELLOW}
     )
     session.handle_frame(Snapshot({}, {}), new_session)
-    event_facts = handle_session_events([], session)
+    event_facts = handle_session_events(session)
     flag_changed_fact_found = False
     for event in event_facts:
         if isinstance(event, FlagsChangedFact):

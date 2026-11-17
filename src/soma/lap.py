@@ -51,5 +51,5 @@ class Lap:
     @classmethod
     def estimate_lap_time_s(
         cls, prev_lap_estimated_timestamp: float, estimated_lap_timestamp: float
-    ):
+    ) -> float:
         return estimated_lap_timestamp - prev_lap_estimated_timestamp

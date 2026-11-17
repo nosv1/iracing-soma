@@ -17,9 +17,9 @@ from soma.irsdk_vars import (
     SESSIONS,
     WEEKEND_INFO,
 )
-from soma.loader import Snapshot
 from soma.session_flag import SessionFlag
 from soma.session_type import SessionType
+from soma.snapshot import Snapshot
 
 logger = logging.getLogger(__file__)
 

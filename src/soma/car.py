@@ -21,16 +21,6 @@ class CarDeltaGap:
 
 
 @dataclass
-class RaceDistanceMilestoneAsLap:
-    laps_remaining: int
-
-
-@dataclass
-class RaceDistanceMilestoneAsPercentRemaining:
-    percent_remaining: float
-
-
-@dataclass
 class Car:
     session_time: float
     session_num: int
@@ -45,25 +35,6 @@ class Car:
     laps: dict[int, dict[int, Lap]] = field(default_factory=dict)
     # TODO check for best lap validity
     best_laps: dict[int, int | None] = field(default_factory=dict)
-    #
-    #
-    #
-    #
-    # TODO these should all get converted to lap counts so we don't double dip
-    race_distance_milestones: list[
-        RaceDistanceMilestoneAsLap | RaceDistanceMilestoneAsPercentRemaining
-    ] = [
-        RaceDistanceMilestoneAsPercentRemaining(percent_remaining=0.5),
-        RaceDistanceMilestoneAsPercentRemaining(percent_remaining=0.25),
-        RaceDistanceMilestoneAsLap(laps_remaining=5),
-        RaceDistanceMilestoneAsLap(laps_remaining=3),
-        RaceDistanceMilestoneAsLap(laps_remaining=2),
-        RaceDistanceMilestoneAsLap(laps_remaining=1),
-    ]
-    #
-    #
-    #
-    #
     # list of events for the current frame
     # cleared then appended to in handle frame
     events: list[EventTypes] = field(default_factory=list)
@@ -72,6 +43,15 @@ class Car:
         if not isinstance(other, Car):
             return False
         return self.idx == other.idx
+
+    def is_p1(self) -> bool:
+        return self.position == 1
+
+    def new_lap_detected(self) -> bool:
+        return EventTypes.CAR_NEW_LAP in self.events
+
+    def is_past_lap_one(self) -> bool:
+        return self.session_num in self.laps and len(self.laps[self.session_num]) > 1
 
     @classmethod
     def from_frame(cls, frame: Snapshot, idx: int, position: int) -> Car:
