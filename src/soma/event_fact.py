@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from soma.session_flag import SessionFlag
 
@@ -8,7 +8,7 @@ from soma.session_flag import SessionFlag
 class EventFact:
     event: ClassVar[str]
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, Any]:
         return {}
 
     def to_str(self) -> str:
@@ -20,7 +20,7 @@ class FlagsChangedFact(EventFact):
     event: ClassVar[str] = "flags is now on"
     new_flag: SessionFlag
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, str | None]:
         return {"event": self.event, "flag": self.new_flag.name}
 
     def to_str(self) -> str:
@@ -33,7 +33,7 @@ class GapFact(EventFact):
     pos: int
     gap_s_as_positive: float
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, str | int | float]:
         return {
             "event": self.event,
             "position": self.pos,
@@ -51,7 +51,7 @@ class CaughtFact(EventFact):
     gain_s_as_positive: float
     gap_fact: GapFact
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, str | int | float | dict[str, str | int | float]]:
         return {
             "event": self.event,
             "position": self.pos,

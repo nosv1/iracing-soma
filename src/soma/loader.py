@@ -24,7 +24,7 @@ class Loader:
 
     def snapshots(self) -> Iterator[Snapshot]:
         local_yaml_history_index = copy(self._yaml_history_index)
-        latest_session_yaml: dict = {}
+        latest_session_yaml: dict[str, Any] = {}
 
         for line in self.lines():
             frame = json.loads(line)
@@ -34,7 +34,7 @@ class Loader:
                     self.yaml_dir / local_yaml_history_index[tick_as_str]
                 )
                 session_yaml_bytes = session_yaml_file.read_bytes().decode("cp1252")
-                session_yaml: dict = yaml.safe_load(session_yaml_bytes)
+                session_yaml: dict[str, Any] = yaml.safe_load(session_yaml_bytes)
 
                 latest_session_yaml = session_yaml
                 del local_yaml_history_index[tick_as_str]

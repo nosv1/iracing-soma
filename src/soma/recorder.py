@@ -4,6 +4,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
+from typing import Any
 
 from soma.iracing import iRacing
 from soma.irsdk_vars import SESSION_TICK
@@ -32,14 +33,21 @@ class Recorder:
         # {str(tick_number): str(file_name)}]}
         self._yaml_idx: dict[str, str] = {}
 
-        self._prev_session_info_update = -1
         self._prev_recorded_tick = 0
-        self._cur_session_tick = lambda ir: ir.ir[SESSION_TICK]
+        self._prev_session_info_update = -1
 
         self._t = threading.Thread(target=self.writer)
         self._t.start()
         logger.info(
             "Recorder initialized:\n" f"\tFrames recorded per second={recorded_fps}"
+        )
+
+    def _cur_session_tick(self, ir: iRacing) -> int:
+        session_tick: Any = ir.ir[SESSION_TICK]
+        if isinstance(session_tick, int):
+            return session_tick
+        raise RuntimeError(
+            f"session tick ({session_tick}) is meant to be an int, why wasn't it?"
         )
 
     @property

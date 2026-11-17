@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from soma.irsdk_vars import CAR_IDX, DRIVER_INFO, DRIVERS, USER_NAME
 from soma.snapshot import Snapshot
@@ -10,7 +11,7 @@ class Driver:
     name: str
 
     @classmethod
-    def from_frame(cls, driver: dict) -> Driver:
+    def from_frame(cls, driver: dict[str, Any]) -> Driver:
         return Driver(car_idx=driver[CAR_IDX], name=driver[USER_NAME])
 
     @classmethod
