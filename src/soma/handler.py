@@ -134,9 +134,6 @@ def handle_frame(
     if old_session is None:
         old_session = new_session
 
-    if old_session.session_tick == new_session.session_tick:
-        return FramePacket(session=old_session, player=player)
-
     old_session.handle_frame(frame, new_session)
     if player is not None:
         player.handle_frame(old_session)
