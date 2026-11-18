@@ -1,12 +1,10 @@
 from copy import deepcopy
-from dataclasses import dataclass, field
 
 from soma.car import Car
 from soma.event import Event, SessionChanged
 from soma.player_constants import (
     PlayerConstants,
     RaceDistanceMilestoneAsLap,
-    RaceDistanceMilestoneAsPercentRemaining,
 )
 from soma.session import Session
 
