@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -15,4 +15,4 @@ class RaceDistanceMilestoneAsPercentRemaining:
 class PlayerConstants:
     race_milestones: list[
         RaceDistanceMilestoneAsLap | RaceDistanceMilestoneAsPercentRemaining
-    ]
+    ] = field(default_factory=list)

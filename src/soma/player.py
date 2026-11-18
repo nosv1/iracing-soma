@@ -1,8 +1,13 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 
+from soma.car import Car
 from soma.event import Event, SessionChanged
-from soma.player_constants import PlayerConstants
+from soma.player_constants import (
+    PlayerConstants,
+    RaceDistanceMilestoneAsLap,
+    RaceDistanceMilestoneAsPercentRemaining,
+)
 from soma.session import Session
 
 
@@ -23,7 +28,16 @@ class Player:
             if isinstance(event, SessionChanged):
                 self.handle_session_change()
 
+    def check_for_lap_milestones(self, player_car: Car) -> None:
+        if not player_car.new_lap_detected():
+            return
+
+        milestone = self.player_constants_for_session.race_milestones[0]
+        if isinstance(milestone, RaceDistanceMilestoneAsLap):
+            pass
+
     def handle_frame(self, session: Session) -> None:
         self.events = []
 
         self.check_for_session_change(session.events)
+        self.check_for_lap_milestones(session.player_car)
