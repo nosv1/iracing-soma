@@ -11,7 +11,7 @@ class RaceDistanceMilestoneAsPercentRemaining:
     percent_remaining: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class PlayerConstants:
     race_milestones: list[
         RaceDistanceMilestoneAsLap | RaceDistanceMilestoneAsPercentRemaining
