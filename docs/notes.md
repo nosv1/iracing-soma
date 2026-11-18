@@ -637,6 +637,30 @@ config now `files` + `strict` (bare `uv run mypy` checks main, src, tests; `benc
   on session change, empty milestones / all popped no crash, fires once, two on one lap → one
   event, passed not said late, percent from time, race only, repeated tick no repeat.
 
+### 2026-11-18 (morning, PC): `SessionUniqueID` checked (no code)
+
+State on `player_constants` (`9260eb2`): pytest 24 passed, 1 xfail, 30 failed (29 stubs +
+`test_caught_call` `IndexError`, the 11-17 empty-milestones crash). mypy strict and ruff clean.
+
+- **`SessionUniqueID` = `SessionNum + 1`** in all 5 full recordings (1 → 2 → 3, same frame as
+  `SessionNum`). It's a per-event counter that adds nothing over `SessionNum`.
+- **It misses the server switch.** `20261019-175649` frame 2806: tick 83691 → 59711,
+  `PlayerCarIdx` 35 → 18, `SessionNum` 0 → 0, UID 1 → 1. Session type doesn't change either
+  (Practice → Practice). YAML `SubSessionID` 89493421 → 89494186 arrives 54 ticks later.
+- **Ticks stall before the switch:** about 31 s with no new tick (old server's last tick ~:890,
+  race server's first YAML :921.7; estimated from YAML file names, frames have no wall clock).
+  Unknown whether pyirsdk stayed connected through it.
+- **His call:** key on `SessionNum` for now; the known hole is a server switch between
+  same-numbered sessions. Maybe detect a server exit later by ticks stopping. Raised: replay
+  can't test a wall-clock stall (frames have no wall time, only moved ticks are recorded); a
+  tick going backwards is visible in recordings (frame 2806 is a real test case).
+- If `SessionUniqueID` is dropped, the `-1` fixtures (`rolling_start`, `split_crossing`) don't
+  need regenerating.
+- Seen again: `yaml_history` names are tick-only, so the two servers' files overlap in ticks
+  66867–83691; sorting by tick mixes servers (my first scan did). His loader pairs by exact
+  tick and gets away with it.
+- He parked Soma for the morning after this.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
@@ -647,7 +671,8 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
    done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Spoke live
    10-20.** Flag events done 11-12. Player + session reset 11-17. **Next (11-17):** fix the
    empty-milestones crash and the repeated tick, write the milestone check in
-   `Player.handle_frame`; on the PC, verify `SessionUniqueID` and regenerate the two fixtures.
+   `Player.handle_frame`; session key: `SessionNum` (11-18; `SessionUniqueID` checked,
+   redundant), drop UID or regenerate the two fixtures.
    **Then (11-12):** laps left: measure the finish rule,
    then 2-to-go / 1-to-go calls, then the line report (gap ahead, gap behind, time left).
    Still open: the cause of the 60 s / 7 s catches in `20261020-112829`.
