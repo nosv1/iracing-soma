@@ -594,15 +594,61 @@ on his code; ruff 1.
 `BooleanOptionalAction` depends on the default); (5) and (7) touched, not reviewed; (8) crash
 or skip-and-log, his design. Mine: `trim_recording.py:23` mypy `attr-defined`.
 
+### 2026-11-17 (laptop): Player, session reset, milestone design
+
+His work on `player_constants`, pushed at `d7efeae`; my stubs on top (`9260eb2`). Closed from
+the 11-16 review: (4) `assert` in `Car.__eq__`, `trim_recording` mypy, ruff clean, mypy
+config now `files` + `strict` (bare `uv run mypy` checks main, src, tests; `bench/` excluded).
+
+- **Player:** built once in `main()`, holds `PlayerConstants` (frozen) and a `deepcopy` per
+  session (`player_constants_for_session`). `__init__` arms the first session (the first frame
+  never fires `SessionChanged`). `Player.handle_frame(session)` runs after Session and Car
+  inside `handle_frame`, so it reads a finished session.
+- **Pattern he reached** ("feels gross" → fixed): detection and mutation happen in
+  `X.handle_frame` and append to `X.events`; `handle_x_events` only turns events into facts.
+  Milestones go in `Player.handle_frame`, not `handle_player_events`.
+- **Milestone design:** types stay separate (Lap, Percent), each list sorted, check the heads.
+  Percent can come from `SessionTimeRemain / SessionTimeTotal` directly (measured, no laps
+  estimate). On a crossing, pop **every** milestone reached, add **one** fact (his: set logic
+  or similar). Popped never fires again (that's the rule for the count rising). Which one is
+  said when two hit, and whether a passed one (connect at 4 to go) is said: his calls, open.
+- **Session change:** `SessionUniqueID` → `Session.session_uid`, `SessionChanged` event and a
+  spoken `SessionChangedFact` (he knows it speaks). The value looks like a small counter
+  (`SessionNum` 2 → `SessionUniqueID` 3 in one frame). **Unverified on the PC:** does it change
+  at the server switch in `20261019-175649` and at every `SessionNum` change? If not, key on
+  `(SubSessionID, SessionNum)` (YAML lags ~1 s at a switch).
+- **Fixtures:** `rolling_start` / `split_crossing` carry `SessionUniqueID: -1`, a placeholder
+  (`1028cb9`; full recordings weren't on the laptop). **Regenerate both on the PC** with
+  `trim_recording.py` (commands in `tests/recordings/README.md`).
+
+**Review (Power of 10, on `6c09a8b`; tip didn't parse mid-edit):**
+
+- **Fix now, his, live crash:** `player.py:33` `race_milestones[0]` on an empty list.
+  `test_caught_call` fails with `IndexError` at `d7efeae` (19 failed = 18 stubs + this). The
+  same crash hits live once every milestone has popped.
+- **Fix now, his:** a repeated tick re-emits event facts. `handle_frame` returns the old
+  session early without clearing `events`, and `do_stuff` still reads them; checked:
+  green frame twice → `GREEN flag` both times. The live loop calls `do_stuff` every spin, no
+  wait. His plan: return early where the tick is identified. Not measured how often live.
+- **Noted:** rule 6, `PlayerConstants` is frozen but the list inside can still be popped
+  (tuple would make it impossible); `deepcopy` guards the copy. Rule 9, `Player` is mutated in
+  place and also returned through `FramePacket` and `StuffPacket` (same object).
+- **Stubs (mine, `tests/test_player.py`, 11):** first session armed, copy ≠ constants, reset
+  on session change, empty milestones / all popped no crash, fires once, two on one lap → one
+  event, passed not said late, percent from time, race only, repeated tick no repeat.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
 feature (my ordering). Caught call goes first, against the replay loop as it stands.
 
-0. Pre-sim habit: `uv run pytest`, `uv run mypy main.py src tests`, `uv run ruff check`.
+0. Pre-sim habit: `uv run pytest`, `uv run mypy`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
    done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Spoke live
-   10-20.** Flag events done 11-12. **Next (11-12):** laps left: measure the finish rule,
+   10-20.** Flag events done 11-12. Player + session reset 11-17. **Next (11-17):** fix the
+   empty-milestones crash and the repeated tick, write the milestone check in
+   `Player.handle_frame`; on the PC, verify `SessionUniqueID` and regenerate the two fixtures.
+   **Then (11-12):** laps left: measure the finish rule,
    then 2-to-go / 1-to-go calls, then the line report (gap ahead, gap behind, time left).
    Still open: the cause of the 60 s / 7 s catches in `20261020-112829`.
    Old plan, for reference: fix the
