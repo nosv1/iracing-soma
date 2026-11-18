@@ -2,10 +2,7 @@ from copy import deepcopy
 
 from soma.car import Car
 from soma.event import Event, SessionChanged
-from soma.player_constants import (
-    PlayerConstants,
-    RaceDistanceMilestoneAsLap,
-)
+from soma.player_constants import PlayerConstants, RaceDistanceMilestoneAsLap
 from soma.session import Session
 
 
@@ -27,6 +24,9 @@ class Player:
                 self.handle_session_change()
 
     def check_for_lap_milestones(self, player_car: Car) -> None:
+        if len(self.player_constants_for_session.race_milestones) == 0:
+            return
+
         if not player_car.new_lap_detected():
             return
 
