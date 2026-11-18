@@ -39,6 +39,11 @@ uv run python tests/recordings/trim_recording.py \
     --session 2 --start 550 --end 690
 ```
 
+**Placeholder, regenerate on the PC:** `rolling_start` and `split_crossing` carry
+`SessionUniqueID: -1` on every frame, added by hand on the laptop (full recordings not
+there). The real value is constant within each window (one `SessionNum`) but unknown.
+Hand fixtures use `SessionUniqueID: 1`.
+
 **Regenerate when code reads a new variable** (a `KeyError` in a test on this fixture).
 The fixture dir must not exist; delete it first. Then check the laps still match (they
 should: only columns are added).

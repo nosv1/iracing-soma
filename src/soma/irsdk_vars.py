@@ -89,6 +89,8 @@ SESSION_FLAGS = "SessionFlags"
 SESSION_LAPS_REMAIN_EX = "SessionLapsRemainEx"
 # Session number
 SESSION_NUM = "SessionNum"
+# Session ID; unverified whether it changes on SessionNum change, server switch, or both
+SESSION_UNIQUE_ID = "SessionUniqueID"
 # Session state (irsdk.SessionState)
 SESSION_STATE = "SessionState"
 # Current update number
