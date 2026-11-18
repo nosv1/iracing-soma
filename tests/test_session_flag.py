@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from soma.do_stuff import Packet, do_stuff
+from soma.do_stuff import StuffPacket, do_stuff
 from soma.event import FlagsChanged
 from soma.event_fact import FlagsChangedFact
 from soma.handler import handle_session_events
@@ -12,6 +12,7 @@ from soma.snapshot import Snapshot
 
 def create_session_with_session_flags(session_flags: set[SessionFlag]) -> Session:
     return Session(
+        session_uid=0,
         session_id=0,
         session_num=0,
         session_time=0,
@@ -31,7 +32,7 @@ def test_from_frame_decodes_named_flags() -> None:
 
 def test_no_event_when_flags_unchanged(rolling_start_snapshots: list[Snapshot]) -> None:
     session: Session | None = None
-    packet: Packet | None = None
+    packet: StuffPacket | None = None
     captured_sessions: list[Session] = []
     for frame in rolling_start_snapshots:
         packet = do_stuff(old_session=session, frame=frame, speaker=None, player=None)
@@ -50,7 +51,7 @@ def test_no_event_when_flags_unchanged(rolling_start_snapshots: list[Snapshot]) 
 
 def test_green_at_start_spoken_once(rolling_start_snapshots: list[Snapshot]) -> None:
     session: Session | None = None
-    packet: Packet | None = None
+    packet: StuffPacket | None = None
     green_flags_changed_facts: list[FlagsChangedFact] = []
     for frame in rolling_start_snapshots:
         packet = do_stuff(old_session=session, frame=frame, speaker=None, player=None)
@@ -69,7 +70,7 @@ def test_green_at_start_spoken_once(rolling_start_snapshots: list[Snapshot]) -> 
 def test_flag_turning_off_not_spoken(rolling_start_snapshots: list[Snapshot]) -> None:
     session: Session | None = None
     prev_session: Session | None = session
-    packet: Packet | None = None
+    packet: StuffPacket | None = None
     for frame in rolling_start_snapshots:
         packet = do_stuff(old_session=session, frame=frame, speaker=None, player=None)
         session = packet.session
@@ -83,7 +84,7 @@ def test_flag_turning_off_not_spoken(rolling_start_snapshots: list[Snapshot]) ->
     green_flag = SessionFlag.GREEN
     assert green_flag in prev_session.session_flags
     assert green_flag not in session.session_flags
-    if isinstance(packet, Packet):
+    if isinstance(packet, StuffPacket):
         for event_fact in packet.event_facts:
             assert not isinstance(event_fact, FlagsChangedFact)
     # # recording: tests/recordings/rolling_start (green off at 112.48 s)

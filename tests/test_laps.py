@@ -34,8 +34,10 @@ def test_delta_gap_after_lap(laps_session: Session) -> None:
 
 def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
     session: Session | None = None
+    player: Player | None = None
     for snapshot in laps_p3_loader.snapshots():
-        session = handle_frame(session, snapshot)
+        frame_packet = handle_frame(session, player, snapshot)
+        session = frame_packet.session
         if session.session_tick == 990:
             sorted_delta_gaps = session.cars[
                 session.player_car_idx
@@ -47,10 +49,12 @@ def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
 
 def test_caught_call(laps_p3_loader: Loader) -> None:
     session: Session | None = None
+    player: Player | None = None
     tick_990_caught_fact: CaughtFact | None = None
     player = Player(player_constants=PlayerConstants(race_milestones=[]))
     for snapshot in laps_p3_loader.snapshots():
-        session = handle_frame(session, snapshot)
+        frame_packet = handle_frame(session, player, snapshot)
+        session = frame_packet.session
         if session.session_tick == 990:
             event_facts = handle_player_events(session, player)
             assert len(event_facts) == 1

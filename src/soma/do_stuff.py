@@ -15,8 +15,9 @@ from soma.speaker import Speaker
 
 
 @dataclass
-class Packet:
+class StuffPacket:
     session: Session
+    player: Player | None
     event_facts: list[EventFact] = field(default_factory=list)
 
 
@@ -25,8 +26,11 @@ def do_stuff(
     frame: Snapshot,
     speaker: Speaker | None,
     player: Player | None,
-) -> Packet:
-    new_session = handle_frame(old_session, frame)
+) -> StuffPacket:
+    frame_packet = handle_frame(old_session=old_session, player=player, frame=frame)
+    new_session = frame_packet.session
+    player = frame_packet.player
+
     event_facts: list[EventFact] = []
     event_facts.extend(handle_session_events(new_session))
     event_facts.extend(handle_car_events(new_session))
@@ -34,4 +38,4 @@ def do_stuff(
         event_facts.extend(handle_player_events(new_session, player))
     if speaker is not None:
         handle_event_facts(event_facts, speaker)
-    return Packet(session=new_session, event_facts=event_facts)
+    return StuffPacket(session=new_session, player=player, event_facts=event_facts)

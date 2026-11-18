@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from soma.car import Car
 from soma.driver import Driver
-from soma.event import Event, FlagsChanged
+from soma.event import Event, FlagsChanged, SessionChanged
 from soma.irsdk_vars import (
     PLAYER_CAR_IDX,
     SESSION_ID,
@@ -14,6 +14,7 @@ from soma.irsdk_vars import (
     SESSION_TIME_REMAIN,
     SESSION_TIME_TOTAL,
     SESSION_TYPE,
+    SESSION_UNIQUE_ID,
     SESSIONS,
     WEEKEND_INFO,
 )
@@ -26,6 +27,7 @@ logger = logging.getLogger(__file__)
 
 @dataclass
 class Session:
+    session_uid: int
     session_id: int
     session_num: int
     session_time: float
@@ -60,6 +62,7 @@ class Session:
         drivers = Driver.drivers_from_frame(frame)
 
         return Session(
+            session_uid=frame[SESSION_UNIQUE_ID],
             session_id=frame[WEEKEND_INFO][SESSION_ID],
             session_num=frame[SESSION_NUM],
             session_time=frame[SESSION_TIME],
@@ -76,6 +79,7 @@ class Session:
         )
 
     def update_session(self, new_session: Session) -> None:
+        self.session_uid = new_session.session_uid
         self.session_id = new_session.session_id
         self.session_time = new_session.session_time
         self.session_tick = new_session.session_tick
@@ -125,6 +129,15 @@ class Session:
             + 1
         )
 
+    def detect_session_change(self, new_session: Session) -> None:
+        if new_session.session_uid != self.session_uid:
+            self.events.append(
+                SessionChanged(
+                    old_session_uid=self.session_uid,
+                    new_session_uid=new_session.session_uid,
+                )
+            )
+
     def detect_flag_changes(self, new_session: Session) -> None:
         if SessionFlag.did_flags_change(new_session.session_flags, self.session_flags):
             self.events.append(
@@ -136,6 +149,7 @@ class Session:
     def handle_frame(self, frame: Snapshot, new_session: Session) -> None:
         self.events = []
 
+        self.detect_session_change(new_session)
         self.detect_flag_changes(new_session)
         self.update_session(new_session)
 

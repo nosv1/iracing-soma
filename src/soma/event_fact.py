@@ -16,6 +16,17 @@ class EventFact:
 
 
 @dataclass
+class SessionChangedFact(EventFact):
+    event: ClassVar[str] = "session changed"
+
+    def to_json(self) -> dict[str, str | None]:
+        return {"event": self.event}
+
+    def to_str(self) -> str:
+        return f"{self.event}"
+
+
+@dataclass
 class FlagsChangedFact(EventFact):
     event: ClassVar[str] = "flags is now on"
     new_flag: SessionFlag

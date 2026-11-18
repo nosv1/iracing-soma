@@ -8,6 +8,7 @@ from soma.driver import Driver
 from soma.handler import handle_frame
 from soma.irsdk_vars import SESSION_TICK
 from soma.loader import Loader
+from soma.player import Player
 from soma.session import Session
 from soma.snapshot import Snapshot
 from soma.speaker import Speaker
@@ -75,8 +76,10 @@ def snapshots_with_laps_iterator(laps_loader: Loader) -> Iterator[Snapshot]:
 @pytest.fixture(scope="module")
 def laps_session(snapshots_with_laps_iterator: Iterator[Snapshot]) -> Session:
     session: Session | None = None
+    player: Player | None = None
     for snapshot in snapshots_with_laps_iterator:
-        session = handle_frame(session, snapshot)
+        frame_packet = handle_frame(session, player, snapshot)
+        session = frame_packet.session
     assert session is not None
     return session
 
@@ -97,7 +100,9 @@ def rolling_start_snapshots(rolling_start_loader: Loader) -> list[Snapshot]:
 @pytest.fixture(scope="module")
 def rolling_start_session(rolling_start_snapshots: list[Snapshot]) -> Session:
     session: Session | None = None
+    player: Player | None = None
     for snapshot in rolling_start_snapshots:
-        session = handle_frame(session, snapshot)
+        frame_packet = handle_frame(session, player, snapshot)
+        session = frame_packet.session
     assert session is not None
     return session

@@ -8,6 +8,7 @@ from soma.session_flag import SessionFlag
 class EventTypes(StrEnum):
     CAR_NEW_LAP = "car_new_lap"
     FLAGS_CHANGED = "flags_changed"
+    SESSION_CHANGED = "session_changed"
 
 
 class Event:
@@ -25,3 +26,10 @@ class FlagsChanged(Event):
         for flag in self.cur_flags:
             if flag not in self.old_flags:
                 yield flag
+
+
+@dataclass
+class SessionChanged(Event):
+    name = EventTypes.SESSION_CHANGED
+    old_session_uid: int
+    new_session_uid: int

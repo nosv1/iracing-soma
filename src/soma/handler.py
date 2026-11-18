@@ -1,14 +1,27 @@
 import logging
+from dataclasses import dataclass
 
 from soma.car import Car, CarDeltaGap
-from soma.event import FlagsChanged
-from soma.event_fact import CaughtFact, EventFact, FlagsChangedFact, GapFact
+from soma.event import FlagsChanged, SessionChanged
+from soma.event_fact import (
+    CaughtFact,
+    EventFact,
+    FlagsChangedFact,
+    GapFact,
+    SessionChangedFact,
+)
 from soma.player import Player
 from soma.session import Session
 from soma.snapshot import Snapshot
 from soma.speaker import Speaker
 
 logger = logging.getLogger(__file__)
+
+
+@dataclass
+class FramePacket:
+    session: Session
+    player: Player | None
 
 
 def handle_event_facts(event_facts: list[EventFact], speaker: Speaker) -> None:
@@ -63,6 +76,12 @@ def handle_session_events(session: Session) -> list[EventFact]:
             for flag in event.new_flags:
                 flags_changed_fact = FlagsChangedFact(flag)
                 event_facts.append(flags_changed_fact)
+            continue
+
+        if isinstance(event, SessionChanged):
+            session_changed_fact = SessionChangedFact()
+            event_facts.append(session_changed_fact)
+            continue
     return event_facts
 
 
@@ -108,13 +127,17 @@ def handle_player_events(session: Session, player: Player) -> list[EventFact]:
     return event_facts
 
 
-def handle_frame(old_session: Session | None, frame: Snapshot) -> Session:
+def handle_frame(
+    old_session: Session | None, player: Player | None, frame: Snapshot
+) -> FramePacket:
     new_session = Session.from_frame(frame)
     if old_session is None:
         old_session = new_session
 
     if old_session.session_tick == new_session.session_tick:
-        return old_session
+        return FramePacket(session=old_session, player=player)
 
     old_session.handle_frame(frame, new_session)
-    return old_session  # as an updated session
+    if player is not None:
+        player.handle_frame(old_session)
+    return FramePacket(session=old_session, player=player)
