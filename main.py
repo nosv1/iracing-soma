@@ -47,11 +47,14 @@ def cli() -> None:
         "-s",
         "--speaker",
         default=True,
-        type=bool,
+        type=str,
         help="whether to use speaker thread or not",
     )
     args = parser.parse_args()
-    main(args.record, args.load, args.speaker)
+    # args.speaker needs to be a bool type, it will only ever be false if "False" or "false" given
+    speaker_flag = args.speaker in {"False", "false"}
+
+    main(args.record, args.load, speaker_flag)
 
 
 def check_stop_loop(next_stop_check: float, stop_file: Path) -> bool | float:
