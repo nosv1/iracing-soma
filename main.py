@@ -52,7 +52,8 @@ def cli() -> None:
     )
     args = parser.parse_args()
     # args.speaker needs to be a bool type, it will only ever be false if "False" or "false" given
-    speaker_flag = args.speaker in {"False", "false"}
+    # otherwise default to True as the argument definition suggests
+    speaker_flag = not (args.speaker in {"False", "false"})
 
     main(args.record, args.load, speaker_flag)
 
