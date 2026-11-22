@@ -47,7 +47,8 @@ def main() -> None:
     parser.add_argument("--end", type=float, required=True)
     args = parser.parse_args()
 
-    keys = used_keys() | {irsdk_vars.SESSION_TICK}
+    # sorted: a set's order changes run to run, which makes re-cut fixtures diff noisily
+    keys = sorted(used_keys() | {irsdk_vars.SESSION_TICK})
     index: dict[str, str] = json.loads(
         (args.src / "yaml_history" / "index.json").read_text()
     )
