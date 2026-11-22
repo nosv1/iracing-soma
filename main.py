@@ -51,9 +51,10 @@ def cli() -> None:
         help="whether to use speaker thread or not",
     )
     args = parser.parse_args()
-    # args.speaker needs to be a bool type, it will only ever be false if "False" or "false" given
+    # args.speaker needs to be a bool type, it will only ever be
+    # false if "False" or "false"
     # otherwise default to True as the argument definition suggests
-    speaker_flag = not (args.speaker in {"False", "false"})
+    speaker_flag = args.speaker not in {"False", "false"}
 
     main(args.record, args.load, speaker_flag)
 
