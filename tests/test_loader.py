@@ -31,6 +31,7 @@ def test_yaml_switched_over_correctly(
 
 
 def test_tick_without_frame(recordings_path: Path) -> None:
-    with pytest.raises(CorruptRecordingsError):
+    with pytest.raises(CorruptRecordingsError) as e:
         loader = Loader(recordings_path / "yaml_tick_without_frame")
         list(loader.snapshots())
+    assert "missing: 633" in str(e.value)

@@ -43,12 +43,13 @@ class Loader:
             yield Snapshot(frame=frame, session_yaml=latest_session_yaml)
 
         if len(local_yaml_history_index.keys()) != 0:
+            missing_ticks = "\n".join(
+                [f"missing: {tick}" for tick in local_yaml_history_index.keys()]
+            )
             raise CorruptRecordingsError(
                 "YAML history should have been emptied by the time all frames are "
-                "loaded."
+                "loaded. "
                 "There is a mismatch somewhere, each YAML tick should exist as a frame "
                 "in frames.txt\n"
-                "\n".join(
-                    [f"missing: {tick}" for tick in self._yaml_history_index.keys()]
-                )
+                f"{missing_ticks}"
             )
