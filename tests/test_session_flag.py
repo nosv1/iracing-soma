@@ -12,6 +12,7 @@ from soma.snapshot import Snapshot
 
 def create_session_with_session_flags(session_flags: set[SessionFlag]) -> Session:
     return Session(
+        sub_session_id=0,
         session_uid=0,
         session_id=0,
         session_num=0,

@@ -16,6 +16,7 @@ from soma.irsdk_vars import (
     SESSION_TYPE,
     SESSION_UNIQUE_ID,
     SESSIONS,
+    SUB_SESSION_ID,
     WEEKEND_INFO,
 )
 from soma.session_flag import SessionFlag
@@ -27,6 +28,7 @@ logger = logging.getLogger(__file__)
 
 @dataclass
 class Session:
+    sub_session_id: int
     session_uid: int
     session_id: int
     session_num: int
@@ -62,6 +64,7 @@ class Session:
         drivers = Driver.drivers_from_frame(frame)
 
         return Session(
+            sub_session_id=frame[WEEKEND_INFO][SUB_SESSION_ID],
             session_uid=frame[SESSION_UNIQUE_ID],
             session_id=frame[WEEKEND_INFO][SESSION_ID],
             session_num=frame[SESSION_NUM],
@@ -79,8 +82,10 @@ class Session:
         )
 
     def update_session(self, new_session: Session) -> None:
+        self.sub_session_id = new_session.sub_session_id
         self.session_uid = new_session.session_uid
         self.session_id = new_session.session_id
+        self.session_num = new_session.session_num
         self.session_time = new_session.session_time
         self.session_tick = new_session.session_tick
         self.session_type = new_session.session_type
@@ -92,6 +97,12 @@ class Session:
 
     def is_race(self) -> bool:
         return self.session_type.is_race()
+
+    def is_new_sub_session_id(self, new_session: Session) -> bool:
+        return self.sub_session_id != new_session.sub_session_id
+
+    def is_new_session_num(self, new_session: Session) -> bool:
+        return self.session_num != new_session.session_num
 
     def estimate_laps_left(self) -> None | int:
         # TODO developed for timed races, what happens for lap count races?
@@ -130,7 +141,9 @@ class Session:
         )
 
     def detect_session_change(self, new_session: Session) -> None:
-        if new_session.session_uid != self.session_uid:
+        if self.is_new_session_num(new_session) or self.is_new_sub_session_id(
+            new_session
+        ):
             self.events.append(
                 SessionChanged(
                     old_session_uid=self.session_uid,
