@@ -661,6 +661,51 @@ State on `player_constants` (`9260eb2`): pytest 24 passed, 1 xfail, 30 failed (2
   tick and gets away with it.
 - He parked Soma for the morning after this.
 
+### 2026-11-22 (Sunday, PC): warm-ups, session change on SubSessionID, first Player tests
+
+**Merge bar (his):** `player_constants` lands on `main` as a finished feature (milestones
+working), not as inert wiring. At 21:05 on `251e812` + his uncommitted `tests/test_player.py`:
+pytest 29 passed, 1 xfail, 29 failed (all TODO stubs, no real failures); mypy 3 and ruff 1,
+all in that uncommitted file.
+
+- **Since 11-17, checked:** empty-milestones crash fixed (`8c261c2`). Repeated tick fixed by
+  dropping the early return (`082d3c0`): every `rolling_start` frame through `do_stuff` twice →
+  GREEN and BLUE once each (throwaway script, mine).
+- **Warm-ups, his:** loader missing-ticks message (`6594d18`): adjacent literals had made the
+  preamble the `.join` separator (one missing tick → preamble gone), list now from the local
+  index; test asserts `missing: 633`. Not asserted: the preamble; `loaded.There` lacks a space.
+  `--speaker` (`ddb0ac0`, inverted, then `40bfe2d`): right now (`-s False` off, default on) via
+  `type=str` + a set of two spellings; `-s 0` / `no` still mean on. `BooleanOptionalAction`
+  would drop the parsing.
+- **Session change (his, `d53db76`):** `SessionChanged` on `SessionNum` **or** `SubSessionID`
+  (`WeekendInfo.SubSessionID`), overriding 11-18's "SessionNum for now". The server switch is
+  now covered, ~1 s late (YAML lags 54 ticks). Review caught AND-instead-of-OR (fired in no
+  recording), `frame[SUB_SESSION_ID]` at top level (`KeyError`, every fixture), and
+  `update_session` not updating `session_num`; all three fixed before the push.
+- **Player (his, `251e812`):** milestones now in `Player.race_milestones` (a deepcopy per
+  session), so `PlayerConstants` is never popped. `ReachedRaceDistanceMilestone` event added;
+  `check_for_lap_milestones` emits it with `0.0` placeholders on every new lap when the head is
+  a `Lap` milestone, nothing popped yet (WIP). 4 Player tests green, uncommitted: first session
+  armed, copy ≠ constants, reset on session change, no milestones no crash.
+- **Review of those tests (fix now):** import `PlayerConstants` and the milestone types from
+  `soma.player_constants`, not `soma.player` (mypy `attr-defined` ×3); unused import (ruff
+  F401). `test_session_copy_is_not_the_constants` can't fail: `race_milestones[1:]` rebinds
+  to a new list, so it passes without the deepcopy. Mutate in place (`pop`) to test the copy.
+  Noted: commented-out `pytest.fail` lines left in.
+- **Mine:** fixtures `rolling_start` / `split_crossing` regenerated with the real
+  `SessionUniqueID` (3; `a5491be`; data diff: only that key). `trim_recording.py` now writes
+  keys sorted (a set's order changed per run). Session-change stubs, 4 (`bef3dd8`).
+- **My miss:** I read local `main` (behind `origin/main`) and redid 11-18's `SessionUniqueID`
+  check; same result. I also told him the switch tick went 66867 → 59711; it's 83691 → 59711
+  (11-18 is right). Fetch before reading notes.
+- **Stub pile:** 33 red at peak, mostly mine. Proposed parking ~21 not on this branch's path
+  (best lap 7, laps left 5, caught outliers 2, race start 2, recorder 1, server-switch
+  `PlayerCarIdx`, two-on-one-lap, passed-not-said-late) as one-line backlog specs. **Awaiting
+  his OK**; untouched.
+- Also seen: `recordings/20261018-174349` has no `yaml_history/index.json` (can't replay).
+  `estimate_laps_left` does `positions[1]` (`session.py`): `KeyError` before anyone is P1;
+  hits once lap milestones call it.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
@@ -669,10 +714,12 @@ feature (my ordering). Caught call goes first, against the replay loop as it sta
 0. Pre-sim habit: `uv run pytest`, `uv run mypy`, `uv run ruff check`.
 1. His: **caught-call detection**, against the loader/replay loop as is. Redesign + delta test
    done 10-17 (`7d7cc60`). **Speaks 10-18**, calls correct on the 10-16 race. **Spoke live
-   10-20.** Flag events done 11-12. Player + session reset 11-17. **Next (11-17):** fix the
-   empty-milestones crash and the repeated tick, write the milestone check in
-   `Player.handle_frame`; session key: `SessionNum` (11-18; `SessionUniqueID` checked,
-   redundant), drop UID or regenerate the two fixtures.
+   10-20.** Flag events done 11-12. Player + session reset 11-17. Session change on
+   `SessionNum` or `SubSessionID` 11-22. **Next (11-22):** fix the mypy/ruff hits in his
+   uncommitted `test_player.py` and the copy test that can't fail; decide on parking stubs;
+   write the milestone check in `Player.handle_frame` (percent first: measured, no estimate;
+   then lap, which meets `positions[1]`); green the remaining Player and session-change stubs;
+   merge `player_constants` → `main`.
    **Then (11-12):** laps left: measure the finish rule,
    then 2-to-go / 1-to-go calls, then the line report (gap ahead, gap behind, time left).
    Still open: the cause of the 60 s / 7 s catches in `20261020-112829`.
