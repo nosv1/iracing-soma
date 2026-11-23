@@ -9,6 +9,7 @@ class EventTypes(StrEnum):
     CAR_NEW_LAP = "car_new_lap"
     FLAGS_CHANGED = "flags_changed"
     SESSION_CHANGED = "session_changed"
+    REACHED_RACE_DISTANCE_MILESTONE = "reached_race_distance_milestone"
 
 
 class Event:
@@ -33,3 +34,10 @@ class SessionChanged(Event):
     name = EventTypes.SESSION_CHANGED
     old_session_uid: int
     new_session_uid: int
+
+
+@dataclass
+class ReachedRaceDistanceMilestone(Event):
+    name = EventTypes.REACHED_RACE_DISTANCE_MILESTONE
+    time_remain: float
+    laps_remain: float

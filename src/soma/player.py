@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from soma.car import Car
-from soma.event import Event, SessionChanged
+from soma.event import Event, ReachedRaceDistanceMilestone, SessionChanged
 from soma.player_constants import PlayerConstants, RaceDistanceMilestoneAsLap
 from soma.session import Session
 
@@ -32,7 +32,9 @@ class Player:
 
         milestone = self.player_constants_for_session.race_milestones[0]
         if isinstance(milestone, RaceDistanceMilestoneAsLap):
-            pass
+            self.events.append(
+                ReachedRaceDistanceMilestone(time_remain=0.0, laps_remain=0.0)
+            )
 
     def handle_frame(self, session: Session) -> None:
         self.events = []
