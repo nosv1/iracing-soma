@@ -42,7 +42,7 @@ class Player:
                 # TODO remove the placeholders from time/laps remain
                 ReachedRaceDistanceMilestone(time_remain=0.0, laps_remain=0.0)
             )
-            self.race_milestones = self.race_milestones[1:]
+            self.race_milestones.pop(0)
 
     def handle_frame(self, session: Session) -> None:
         self.events = []

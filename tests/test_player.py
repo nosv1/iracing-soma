@@ -39,7 +39,7 @@ def test_session_copy_is_not_the_constants() -> None:
         race_milestones=[RaceDistanceMilestoneAsLap(5), RaceDistanceMilestoneAsLap(3)]
     )
     player = Player(player_constants)
-    player.race_milestones = player.race_milestones[1:]
+    player.race_milestones.pop(0)
     assert len(player.race_milestones) + 1 == len(player_constants.race_milestones)
 
     # pytest.fail(
