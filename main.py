@@ -106,7 +106,7 @@ def loop_iracing_stream(
             if isinstance(do_stop_loop, bool) and do_stop_loop:
                 stop_file.unlink(missing_ok=True)
                 break
-            elif isinstance(do_stop_loop, float):
+            if isinstance(do_stop_loop, float):
                 next_stop_check = do_stop_loop
 
             if ir.ir.is_connected:

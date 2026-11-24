@@ -3,11 +3,14 @@ from dataclasses import dataclass, field
 
 from soma.car import Car
 from soma.driver import Driver
+from soma.duration_type import DurationType
 from soma.event import Event, FlagsChanged, SessionChanged
 from soma.irsdk_vars import (
     PLAYER_CAR_IDX,
     SESSION_ID,
     SESSION_INFO,
+    SESSION_LAPS,
+    SESSION_LAPS_REMAIN_EX,
     SESSION_NUM,
     SESSION_TICK,
     SESSION_TIME,
@@ -38,6 +41,10 @@ class Session:
     # TODO determine what this is for ovals
     session_time_total: float
     session_time_remain: float
+    session_laps_total: float
+    # SessionLapsRemainEx is 32767 for timed sessions
+    session_laps_remain: int
+    duration_type: DurationType
     player_car_idx: int
     session_flags: set[SessionFlag] = field(default_factory=set)
     cars: dict[int, Car] = field(default_factory=dict)  # CarIdx, Car
@@ -52,8 +59,23 @@ class Session:
         return self.cars[self.player_car_idx]
 
     @property
-    def estimated_laps_left(self) -> None | int:
-        return self.estimate_laps_left()
+    def laps_remaining(self) -> int | None:
+        if self.duration_type == DurationType.TIMED:
+            return self.estimate_laps_left()
+        if self.duration_type == DurationType.LAPS:
+            return self.session_laps_remain
+        return None
+
+    @property
+    def percent_remaining(self) -> float | None:
+        if self.duration_type == DurationType.TIMED:
+            return self.session_time_remain / self.session_time_total
+
+        if self.duration_type == DurationType.LAPS:
+            if self.laps_remaining is not None:
+                return self.laps_remaining / self.session_laps_total
+
+        return None
 
     @classmethod
     def from_frame(cls, frame: Snapshot) -> Session:
@@ -73,8 +95,15 @@ class Session:
             session_type=SessionType(
                 frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][SESSION_TYPE]
             ),
+            duration_type=DurationType.from_frame(
+                frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][SESSION_LAPS]
+            ),
             session_time_total=frame[SESSION_TIME_TOTAL],
             session_time_remain=frame[SESSION_TIME_REMAIN],
+            session_laps_total=frame[SESSION_INFO][SESSIONS][frame[SESSION_NUM]][
+                SESSION_LAPS
+            ],
+            session_laps_remain=frame[SESSION_LAPS_REMAIN_EX],
             player_car_idx=frame[PLAYER_CAR_IDX],
             session_flags=SessionFlag.from_frame(frame),
             cars=cars,
@@ -89,8 +118,11 @@ class Session:
         self.session_time = new_session.session_time
         self.session_tick = new_session.session_tick
         self.session_type = new_session.session_type
+        self.duration_type = new_session.duration_type
         self.session_time_total = new_session.session_time_total
         self.session_time_remain = new_session.session_time_remain
+        self.session_laps_total = new_session.session_laps_total
+        self.session_laps_remain = new_session.session_laps_remain
         self.player_car_idx = new_session.player_car_idx
         self.session_flags = new_session.session_flags
         self.positions = {c.position: c.idx for c in new_session.cars.values()}
@@ -104,7 +136,7 @@ class Session:
     def is_new_session_num(self, new_session: Session) -> bool:
         return self.session_num != new_session.session_num
 
-    def estimate_laps_left(self) -> None | int:
+    def estimate_laps_left(self) -> int | None:
         # TODO developed for timed races, what happens for lap count races?
         leader_car = self.cars[self.positions[1]]
 
@@ -128,10 +160,11 @@ class Session:
         if leaders_best_lap.lap_time_s is None:
             return None
 
-        # the amount of time to add back to session time given leader is some
-        # distance through the lap already, lap dist * best lap is prob close enough
         leader_lap_time_offset = leader_car.lap_dist * leaders_best_lap.lap_time_s
-        # round down the estimated laps left and add one
+        leader_lap_time_remaining = leaders_best_lap.lap_time_s - leader_lap_time_offset
+        if self.session_time_remain < leader_lap_time_remaining:
+            return 1
+
         return (
             int(
                 (self.session_time_remain + leader_lap_time_offset)

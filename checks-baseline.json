@@ -1,9 +1,4 @@
 {
- "mypy": {
-  "tests/test_player.py": {
-   "attr-defined": 3
-  }
- },
  "ruff": {
   "bench/gpu_contention.py": {
    "ANN001": 3,

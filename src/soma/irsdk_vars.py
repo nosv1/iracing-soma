@@ -142,4 +142,7 @@ SESSIONS = "Sessions"
 SESSION_TYPE = "SessionType"
 # SessionInfo.Sessions[].SessionName: display name, e.g. PRACTICE, QUALIFY, RACE
 SESSION_NAME = "SessionName"
+# SessionInfo.Sessions[].SessionLaps: lap limit, int or the string "unlimited".
+# Can sit alongside a time limit: rolling_start's Lone Qualify is 2 laps and 480 sec
+SESSION_LAPS = "SessionLaps"
 # Sessions[].SessionNum shares its key with telemetry SESSION_NUM above

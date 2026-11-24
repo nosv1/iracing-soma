@@ -39,5 +39,5 @@ class SessionChanged(Event):
 @dataclass
 class ReachedRaceDistanceMilestone(Event):
     name = EventTypes.REACHED_RACE_DISTANCE_MILESTONE
-    time_remain: float
-    laps_remain: float
+    time_remaining: float | None
+    laps_remaining: float | None
