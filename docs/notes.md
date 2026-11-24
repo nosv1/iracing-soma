@@ -706,6 +706,18 @@ all in that uncommitted file.
   `estimate_laps_left` does `positions[1]` (`session.py`): `KeyError` before anyone is P1;
   hits once lap milestones call it.
 
+### 2026-11-23 (evening, cloud): coding standard tooling (2026-11-24 06:17 CST)
+
+- The hub's [CODING.md](https://github.com/nosv1/nosv1/blob/main/CODING.md) is now the one standard, strictest
+  settings (his call). On `player_constants` (fast-forwarded to `0223125`, his OK): strict Ruff + mypy settings in
+  pyproject.toml (his `files` + `strict` kept), `tools/check_baseline.py`, `checks-baseline.json` (114 Ruff, 3 mypy),
+  and `.github/workflows/check.yml` running both on every push (green). No source changes. Commands: CLAUDE.md, Check.
+- Tests on `player_constants` (Linux, with PortAudio): 29 passed, 29 failed, 1 xfailed. All 29 failures are his
+  `pytest.fail("TODO")` stubs. CI doesn't run pytest yet; **his call: add `uv run pytest` to CI once the stubs are
+  written** (a check that's always red teaches you to ignore it).
+- `main` fails test collection: `src/soma/car.py:53` (his; the error message says what). Fixed on `player_constants`?
+  Not checked.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
