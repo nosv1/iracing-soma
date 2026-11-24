@@ -15,6 +15,15 @@ def test_lap_race_detected() -> None:
     pytest.fail("TODO: race with SessionLaps 15 -> lap race, not timed")
 
 
+def test_unknown_duration_logged_once() -> None:
+    # Recording used: none (build in code; SessionLaps neither "unlimited" nor an int)
+    # Rule 5 here: log and return a safe value, never crash mid-race. caplog for the log.
+    pytest.fail(
+        "TODO: unexpected SessionLaps over many frames -> UNKNOWN, laps_left None,"
+        " no exception, exactly one warning that names the raw value"
+    )
+
+
 def test_two_to_go_spoken_once() -> None:
     # Recording used: recordings/20261020-112829 (gitignored), race end; not trimmed yet
     pytest.fail(
