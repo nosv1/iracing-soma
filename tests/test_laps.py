@@ -1,28 +1,31 @@
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 
 from soma.event_fact import CaughtFact
 from soma.handler import handle_frame, handle_player_events
-from soma.loader import Loader
 from soma.player import Player
 from soma.player_constants import PlayerConstants
-from soma.session import Session
+
+if TYPE_CHECKING:
+    from soma.loader import Loader
+    from soma.session import Session
 
 logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
 
 
 @pytest.mark.parametrize(
-    "idx, expected", [(0, [0.388, 4.388]), (1, [0.769231, 4.615385])]
+    ("idx", "expected"), [(0, [0.388, 4.388]), (1, [0.769231, 4.615385])]
 )
 def test_lap_timestamps(laps_session: Session, idx: int, expected: list[float]) -> None:
     car_0 = laps_session.cars[0]
     car_1 = laps_session.cars[1]
-    assert len(car_0.laps[0].values()) == 2 and len(car_1.laps[0].values()) == 2
-    actual_timestamps = []
-    for lap in laps_session.cars[idx].laps[laps_session.cars[idx].session_num].values():
-        actual_timestamps.append(lap.estimated_timestamp)
+    assert len(car_0.laps[0].values()) == 2
+    assert len(car_1.laps[0].values()) == 2
+    car = laps_session.cars[idx]
+    actual_timestamps = [lap.estimated_timestamp for lap in car.laps[car.session_num].values()]
     assert actual_timestamps == pytest.approx(expected)
 
 
@@ -42,7 +45,7 @@ def test_sorted_delta_gaps(laps_p3_loader: Loader) -> None:
             sorted_delta_gaps = session.cars[
                 session.player_car_idx
             ].get_delta_gaps_ahead(session.cars, session.positions)
-            assert -0.4 == pytest.approx(sorted_delta_gaps[0].delta_gap)
+            assert pytest.approx(sorted_delta_gaps[0].delta_gap) == -0.4
             assert session.cars[sorted_delta_gaps[0].car_idx].position == 2
             break
 
@@ -85,7 +88,7 @@ def test_first_lap_has_no_lap_time(rolling_start_session: Session) -> None:
 
 @pytest.mark.xfail(strict=True, reason="split crossing, parked: low impact, handled")
 def test_crossing_split_across_frames_counts_lap() -> None:
-    # recording: tests/recordings/split_crossing (car 3 flickers; pct wraps ~617.1 s,
+    # Recording used: tests/recordings/split_crossing (car 3 flickers; pct wraps ~617.1 s,
     #   CarIdxLapCompleted 7 -> 8 only at 618.767 s)
     pytest.fail(
         "TODO: car 3 has laps 7, 8, 9; lap 8 lap_time_s ~ 60.635, lap 9 ~ 61.526 "

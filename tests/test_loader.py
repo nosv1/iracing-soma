@@ -1,11 +1,16 @@
-from pathlib import Path
+
+from typing import TYPE_CHECKING
 
 import pytest
 
 from soma.exceptions import CorruptRecordingsError
 from soma.irsdk_vars import DRIVER_INFO, DRIVERS, USER_NAME
 from soma.loader import Loader
-from soma.snapshot import Snapshot
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from soma.snapshot import Snapshot
 
 
 def test_yaml_decoded_correctly(valid_snapshots_dict: dict[int, Snapshot]) -> None:
@@ -31,7 +36,7 @@ def test_yaml_switched_over_correctly(
 
 
 def test_tick_without_frame(recordings_path: Path) -> None:
+    loader = Loader(recordings_path / "yaml_tick_without_frame")
     with pytest.raises(CorruptRecordingsError) as e:
-        loader = Loader(recordings_path / "yaml_tick_without_frame")
         list(loader.snapshots())
     assert "missing: 633" in str(e.value)

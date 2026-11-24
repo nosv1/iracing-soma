@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from soma.do_stuff import StuffPacket, do_stuff
+from soma.duration_type import DurationType
 from soma.event import FlagsChanged
 from soma.event_fact import FlagsChangedFact
 from soma.handler import handle_session_events
@@ -18,9 +19,12 @@ def create_session_with_session_flags(session_flags: set[SessionFlag]) -> Sessio
         session_num=0,
         session_time=0,
         session_tick=0,
-        session_type=SessionType.RACE,
+        session_type=SessionType("Race"),
+        duration_type=DurationType("timed"),
         session_time_total=0,
         session_time_remain=0,
+        session_laps_total=0,
+        session_laps_remain=0,
         player_car_idx=0,
         session_flags=session_flags,
     )
@@ -46,8 +50,8 @@ def test_no_event_when_flags_unchanged(rolling_start_snapshots: list[Snapshot]) 
     for session in captured_sessions:
         for event in session.events:
             assert not isinstance(event, FlagsChanged)
-    # # recording: tests/recordings/rolling_start (no change 70.0-74.8 s)
-    # pytest.fail("TODO: frames with identical SessionFlags -> no FlagsChanged event")
+    # Recording used: tests/recordings/rolling_start (no change 70.0-74.8 s)
+    # frames with identical SessionFlags -> no FlagsChanged event
 
 
 def test_green_at_start_spoken_once(rolling_start_snapshots: list[Snapshot]) -> None:
@@ -57,15 +61,16 @@ def test_green_at_start_spoken_once(rolling_start_snapshots: list[Snapshot]) -> 
     for frame in rolling_start_snapshots:
         packet = do_stuff(old_session=session, frame=frame, speaker=None, player=None)
         session = packet.session
-        for event_fact in packet.event_facts:
-            if isinstance(event_fact, FlagsChangedFact):
-                if event_fact.new_flag is SessionFlag.GREEN:
-                    green_flags_changed_facts.append(event_fact)
+        green_flags_changed_facts.extend(
+            ef
+            for ef in packet.event_facts
+            if (isinstance(ef, FlagsChangedFact) and ef.new_flag is SessionFlag.GREEN)
+        )
 
     assert len(green_flags_changed_facts) == 1
     assert green_flags_changed_facts[0].new_flag is SessionFlag.GREEN
-    # # recording: tests/recordings/rolling_start (green + start_go on at 83.88 s)
-    # pytest.fail("TODO: whole fixture -> exactly one FlagsChangedFact(GREEN)")
+    # Recording used: tests/recordings/rolling_start (green + start_go on at 83.88 s)
+    # whole fixture -> exactly one FlagsChangedFact(GREEN)
 
 
 def test_flag_turning_off_not_spoken(rolling_start_snapshots: list[Snapshot]) -> None:
@@ -88,8 +93,8 @@ def test_flag_turning_off_not_spoken(rolling_start_snapshots: list[Snapshot]) ->
     if isinstance(packet, StuffPacket):
         for event_fact in packet.event_facts:
             assert not isinstance(event_fact, FlagsChangedFact)
-    # # recording: tests/recordings/rolling_start (green off at 112.48 s)
-    # pytest.fail("TODO: green turns off -> no FlagsChangedFact")
+    # Recording used: tests/recordings/rolling_start (green off at 112.48 s)
+    # green turns off -> no FlagsChangedFact
 
 
 def test_only_newly_on_flags_spoken() -> None:

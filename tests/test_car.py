@@ -27,7 +27,7 @@ def create_laps(
 
 
 def create_car(idx: int, position: int) -> Car:
-    car = Car(
+    return Car(
         session_time=0,
         session_num=3,
         track_surface=TrackSurface(3),
@@ -39,7 +39,6 @@ def create_car(idx: int, position: int) -> Car:
         laps={},
         events=[],
     )
-    return car
 
 
 def test_delta_gap_no_laps_either_car() -> None:
@@ -85,7 +84,7 @@ def test_delta_gap_other_missing_previous_lap() -> None:
 
 
 def test_not_in_world_frame_leaves_car_unchanged() -> None:
-    # recording: none; build cars with create_car
+    # Recording used: none; build cars with create_car
     car = create_car(1, 1)
     car.track_surface = TrackSurface(TrackSurface.ON_TRACK)
     new_car = create_car(1, 1)
@@ -102,37 +101,37 @@ def test_not_in_world_frame_leaves_car_unchanged() -> None:
 
 
 def test_best_lap_skips_untimed_first_lap() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: lap 1 with lap_time_s None -> no best lap yet, no crash")
 
 
 def test_best_lap_first_timed_lap() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: lap 1 untimed, lap 2 timed 90.0 -> best is lap 2")
 
 
 def test_best_lap_faster_replaces() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: laps 90.0, 89.5 -> best is the 89.5 lap")
 
 
 def test_best_lap_slower_keeps() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: laps 89.5, 90.0 -> best stays the 89.5 lap")
 
 
 def test_best_lap_tie_keeps_first() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: laps 89.5, 89.5 -> best stays the earlier lap")
 
 
 def test_best_lap_per_session() -> None:
-    # recording: none; build laps in code
+    # Recording used: none; build laps in code
     pytest.fail("TODO: best 85.0 in qualifying, race laps 90.0 -> race best is 90.0")
 
 
 def test_best_lap_matches_official() -> None:
-    # recording: recordings/20261020-112829 (gitignored), race; frames have
+    # Recording used: recordings/20261020-112829 (gitignored), race; frames have
     #   CarIdxBestLapTime / CarIdxBestLapNum (posts late, like CarIdxLastLapTime);
     #   trimmed fixtures drop them until src/soma reads them
     pytest.fail(

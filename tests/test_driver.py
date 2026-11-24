@@ -1,4 +1,7 @@
-from soma.driver import Driver
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from soma.driver import Driver
 
 
 def test_valid_driver_dict(valid_driver_dict: dict[int, Driver]) -> None:

@@ -1,5 +1,5 @@
-from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from piper import PiperVoice
@@ -8,10 +8,14 @@ from soma.driver import Driver
 from soma.handler import handle_frame
 from soma.irsdk_vars import SESSION_TICK
 from soma.loader import Loader
-from soma.player import Player
-from soma.session import Session
-from soma.snapshot import Snapshot
 from soma.speaker import Speaker
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from soma.player import Player
+    from soma.session import Session
+    from soma.snapshot import Snapshot
 
 
 def get_idx_snapshot_dict(loader: Loader) -> dict[int, Snapshot]:
@@ -28,8 +32,7 @@ def speaker() -> Speaker:
     cur_dir = Path(__file__).parent / ".."
     voices_dir = cur_dir / "voices"
     voice_path = voices_dir / "en_GB-southern_english_female-low.onnx"
-    speaker = Speaker(voice=PiperVoice.load(voice_path))
-    return speaker
+    return Speaker(voice=PiperVoice.load(voice_path))
 
 
 ############       VALID FIXTURES       ############
