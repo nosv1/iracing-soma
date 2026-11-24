@@ -718,6 +718,25 @@ all in that uncommitted file.
 - `main` fails test collection at `src/soma/car.py:53` (mutable dataclass default). `player_constants` collects
   fine, so it goes away when that branch merges to `main`.
 
+### 2026-11-24 afternoon (local): laps left by duration type, test cleanup
+
+- His design: laps left extrapolates from the leader's **last line crossing** (not lap_dist), pace = best lap.
+  `Session.laps_left` picks by `DurationType` (from YAML `SessionLaps`: `"unlimited"` → TIMED, int → LAPS, else
+  UNKNOWN): TIMED → `estimate_laps_left()`, LAPS → `SessionLapsRemainEx` (32767 in timed sessions). WIP in `f9a10f5`.
+- Found: rolling_start's Lone Qualify is `SessionLaps: 2` **and** 480 sec (both limits can coexist). No recording
+  has a lap-limited race. Unmeasured: finish rule (white or checkered at first crossing after 0; decides the `+ 1`),
+  what `SessionLapsRemainEx` counts (leader or player, current lap or not). `SessionLapsTotal` exists, not added.
+- **Red until fixed:** fixtures (laps, laps_p2, laps_p3, valid, yaml_tick_without_frame) lack `SessionLaps` in YAML
+  and all lack `SessionLapsRemainEx` in frames → KeyError (41 failed, 6 errors). Full recordings aren't in the
+  repo folder on his machine; **ask where they are**, else patch fixtures (his OK needed).
+- Ruff on `player_constants` (`b505822`): tests/ clean, 26 fixed (not yet `--update`d: his src has 3 new, SIM102 in
+  player.py, PLR0911 + SIM102 in session.py). mypy baseline 0. Stub comments now `# Recording used:` (old form
+  parsed as code, ERA001); his intent lines kept as `# Expect:`. Laps-left + unknown-duration stubs added (`221c56e`).
+- Local VS Code: Ruff extension + `.vscode/settings.json` (fixAll + organizeImports on save, Black formats).
+- Rule 5 policy for Soma, proposed, his call: log and return a safe value, never crash mid-race; log once on
+  change, not per frame. Not yet in CLAUDE.md.
+- He's finding strict mode tiring; most friction today was baseline cleanup and fixture data, not new code.
+
 ## Next
 
 **Reordered 10-16:** a week in, no caught-call code yet. The list had polish ahead of the
