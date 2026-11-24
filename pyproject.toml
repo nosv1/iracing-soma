@@ -23,9 +23,14 @@ dev = [
     "types-pyyaml>=6.0.12.20260906",
 ]
 
+# The coding standard: nosv1/nosv1 CODING.md (standard/mypy.ini, standard/ruff.toml). Strictest settings;
+# today's findings are in checks-baseline.json, which only shrinks (tools/check_baseline.py).
 [tool.mypy]
 files = ["main.py", "src", "tests"]
 strict = true
+warn_unreachable = true
+extra_checks = true
+enable_error_code = ["possibly-undefined", "redundant-expr", "truthy-bool", "truthy-iterable", "ignore-without-code", "unused-awaitable", "redundant-self"]
 [[tool.mypy.overrides]]
 # these ship no type info (no stubs, no py.typed); treat their imports as Any
 module = ["irsdk", "sounddevice"]
@@ -38,10 +43,28 @@ pythonVersion = "3.14"
 venvPath = "."
 venv = ".venv"
 
+[tool.ruff]
+line-length = 120
+
 [tool.ruff.lint]
-# E/F: pycodestyle errors + pyflakes (default); I: import sorting; N: PEP 8 naming;
-# UP: modern syntax for the target Python; B: common bug patterns
-select = ["E", "F", "I", "N", "UP", "B"]
+# Each family is here for a rule in CODING.md; style-only families (docstrings, quotes, commas) are taste.
+select = ["E", "W", "F", "I", "N", "UP", "B", "A", "BLE", "C4", "C90", "S", "ANN", "ARG", "RET", "SIM", "TRY", "PERF", "PL", "PT", "RUF", "ERA", "PGH", "ISC", "PIE", "SLF", "EM", "DTZ", "TID", "TC"]
+# PLR2004 magic numbers, TRY003/EM long messages: taste. PT009/PT027: unittest asserts are allowed.
+ignore = ["PLR2004", "TRY003", "EM101", "EM102", "E501", "PT009", "PT027"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR0913", "SLF001"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 4
+max-positional-args = 4
+max-statements = 50
+max-branches = 12
+max-returns = 6
+max-nested-blocks = 4
 
 [tool.ruff.lint.pep8-naming]
 # keep the brand's capitalization in names (class iRacing, queue_iRacing_frame)

@@ -1,0 +1,130 @@
+{
+ "mypy": {
+  "tests/test_player.py": {
+   "attr-defined": 3
+  }
+ },
+ "ruff": {
+  "bench/gpu_contention.py": {
+   "ANN001": 3,
+   "ANN003": 1,
+   "ANN201": 9,
+   "ANN202": 1,
+   "ANN204": 1,
+   "DTZ005": 1,
+   "ERA001": 1,
+   "PLR0913": 1,
+   "PLR0917": 1,
+   "S310": 2,
+   "S311": 8,
+   "S607": 1,
+   "SIM115": 1
+  },
+  "bench/prompt_play.py": {
+   "ANN201": 1,
+   "ISC004": 1,
+   "PLC0415": 2
+  },
+  "main.py": {
+   "RET508": 1,
+   "TC001": 1
+  },
+  "src/soma/car.py": {
+   "ERA001": 1,
+   "PLW1641": 1,
+   "TC001": 1
+  },
+  "src/soma/do_stuff.py": {
+   "TC001": 5
+  },
+  "src/soma/driver.py": {
+   "TC001": 1
+  },
+  "src/soma/event.py": {
+   "TC001": 1,
+   "TC003": 1
+  },
+  "src/soma/event_fact.py": {
+   "TC001": 1
+  },
+  "src/soma/handler.py": {
+   "ARG001": 1,
+   "RET504": 1,
+   "TC001": 5
+  },
+  "src/soma/lap.py": {
+   "TC001": 1
+  },
+  "src/soma/loader.py": {
+   "SIM118": 1,
+   "TC003": 2
+  },
+  "src/soma/player.py": {
+   "TC001": 2
+  },
+  "src/soma/recorder.py": {
+   "ANN204": 1,
+   "DTZ005": 2,
+   "ISC001": 1,
+   "SLF001": 2,
+   "TC001": 1,
+   "TC003": 1
+  },
+  "src/soma/session.py": {
+   "RUF036": 2,
+   "TC001": 1
+  },
+  "src/soma/session_flag.py": {
+   "TC001": 1
+  },
+  "src/soma/snapshot.py": {
+   "ANN401": 1
+  },
+  "src/soma/speaker.py": {
+   "TC002": 1
+  },
+  "tests/conftest.py": {
+   "RET504": 1,
+   "TC001": 3,
+   "TC003": 1
+  },
+  "tests/recordings/trim_recording.py": {
+   "PLR0402": 1
+  },
+  "tests/test_car.py": {
+   "RET504": 1
+  },
+  "tests/test_driver.py": {
+   "TC001": 1
+  },
+  "tests/test_laps.py": {
+   "PERF401": 1,
+   "PT006": 1,
+   "PT018": 1,
+   "SIM300": 1,
+   "TC001": 2
+  },
+  "tests/test_laps_left.py": {
+   "ERA001": 1
+  },
+  "tests/test_loader.py": {
+   "PT012": 1,
+   "TC001": 1,
+   "TC003": 1
+  },
+  "tests/test_player.py": {
+   "ERA001": 9,
+   "F401": 1,
+   "PERF401": 1,
+   "TC001": 2
+  },
+  "tests/test_race_start.py": {
+   "ERA001": 2,
+   "TC001": 1
+  },
+  "tests/test_session_flag.py": {
+   "ERA001": 3,
+   "SIM102": 1
+  }
+ }
+}

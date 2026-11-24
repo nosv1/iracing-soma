@@ -22,3 +22,5 @@ bench/runs/
 
 # Telemetry recordings (main.py -r)
 /recordings/
+.mypy_cache/
+.ruff_cache/

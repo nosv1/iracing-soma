@@ -1,0 +1,16 @@
+# Runs on every push: strict Ruff and mypy against the baseline (checks-baseline.json, which only shrinks).
+# The coding standard: nosv1/nosv1 CODING.md. Telemetry itself is Windows-only; these checks aren't.
+name: check
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run python tools/check_baseline.py ruff -- ruff check --output-format json .
+      - run: uv run python tools/check_baseline.py mypy -- mypy
